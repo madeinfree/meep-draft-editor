@@ -1,5 +1,5 @@
 import Styles from 'meepworks/styles';
-import userSelectNone from '../../lib/user-select-none';
+import userSelectNone from '../lib/user-select-none';
 export default new Styles({
   root: {
     fontFamily: '\'Georgia\', serif',

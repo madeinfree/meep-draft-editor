@@ -8,7 +8,7 @@ var _styles = require('meepworks/styles');
 
 var _styles2 = _interopRequireDefault(_styles);
 
-var _userSelectNone = require('../../lib/user-select-none');
+var _userSelectNone = require('../lib/user-select-none');
 
 var _userSelectNone2 = _interopRequireDefault(_userSelectNone);
 
