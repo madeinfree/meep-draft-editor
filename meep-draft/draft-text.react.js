@@ -59,7 +59,6 @@ const findLinkEntities = (contentBlock, callback) => {
 
 
 export default class DraftText extends Component {
-
   constructor(...args) {
     super(...args);
     //
