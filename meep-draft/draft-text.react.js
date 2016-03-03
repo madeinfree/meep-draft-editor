@@ -1,7 +1,8 @@
-import React, { PropTypes } from 'react';
+import React, { PropTypes, Component } from 'react';
 import ReactDOM from 'react-dom';
-import Component from 'meepworks/component';
-import merge from 'meepworks/merge';
+// import Component from 'meepworks/component';
+// import merge from 'meepworks/merge';
+import merge from './lib/merge.js'
 import styles from './draft-text.style'
 import {
   Editor,
@@ -33,7 +34,7 @@ import {
   FONTFAMILY
 } from './draft-custom-core/custom'
 
-import './draft-vendor/draft-text.css!'
+import './draft-vendor/draft-text.css'
 
 const getBlockStyle = (block) => {
   switch (block.getType()) {
@@ -74,9 +75,29 @@ export default class DraftText extends Component {
       editMode: 0,
     };
     //
-    this.focus = () => this.refs.editor.focus();
+    this.focus = (editorState) => {
+      console.log(editorState.getSelection().hasFocus)
+      this.refs.editor.focus();
+    }
     //
-    this.onChange = (editorState) => this.setState({editorState});
+    this.onChange = (editorState) => {
+      this.setState({editorState});
+
+      this.stateCache(this.props.onEditorChange, editorState)
+      // console.log(editorState.getCurrentContent()
+      //                        .getBlockForKey(editorState.getSelection().getStartKey())
+      //                        .getText())
+    }
+    this.stateCache = (EditorChange :Function, editorState :Object) => {
+      EditorChange({
+        getEditorState: editorState,
+        getCurrentContent: editorState.getCurrentContent(),
+        getStateText: editorState.getCurrentContent().getBlockForKey(editorState.getSelection().getStartKey()).getText(),
+        getCustomState: (editorStateKey :string) => {
+          return editorState[editorStateKey]();
+        }
+      })
+    }
     //
     this.onDoHandle = (editorState, action) => {
       let newEditorState
@@ -369,10 +390,14 @@ export default class DraftText extends Component {
             />
             {StateLog}
           </div>
-        <div style={styles.editor} onClick={this.focus}>
+        <div style={styles.editor} onClick={()=>{
+              this.focus(editorState)
+            }
+          }>
           <Editor
             customStyleMap={merge(COLORS, BACKGROUNDCOLORS, ALIGN, FONTSIZE, FONTFAMILY)}
             editorState={editorState}
+            readOnly={false}
             onChange={this.onChange}
             placeholder=" "
             blockStyleFn={getBlockStyle}
@@ -419,6 +444,7 @@ class FontFamilyControls extends Component {
           return (
             <SelectFamilyItem
               active={currentStyle.has(FONTFAMILYSTYLE[idx].style)}
+              key={`font_family_button_${idx}`}
               size={family}
               style={FONTFAMILYSTYLE[idx].style}
               onToggle={this.props.onToggle}
@@ -485,6 +511,7 @@ class FontSizeControls extends Component {
         return (
           <SelectItem
             active={currentStyle.has(FONTSIZESTYLE[idx].style)}
+            key={`font_size_button_${idx}`}
             size={size}
             style={FONTSIZESTYLE[idx].style}
             onToggle={this.props.onToggle}
@@ -506,7 +533,7 @@ class FontSizeControls extends Component {
       >
         <div
           style={merge(styles.meepEditorSelectMainBox,
-                      this.state.onOpen?styles.meepEditorSelectMainBoxOpen:null)}
+                      this.state.onOpen?styles.meepEditorSelectMainBoxOpen:{})}
         >
           <div
             onClick={this._onOpen}
@@ -616,9 +643,10 @@ class SelectFamilyItem extends Component {
 
 const TextControls = (props) => {
   let currentStyle = props.editorState.getCurrentInlineStyle();
-  let button = (TEXTSTYLE.map(type => {
+  let button = (TEXTSTYLE.map((type, index) => {
     return (
       <StyleButton
+        key={`text_button_${index}`}
         active={currentStyle.has(type.style)}
         label={<i className={type.label}></i>}
         style={type.style}
@@ -670,9 +698,10 @@ const BlockControls = (props) => {
   const blockType = editorState.getCurrentContent()
                                .getBlockForKey(selection.getStartKey())
                                .getType();
-  let button = (BLOCK_TYPES.map(type => {
+  let button = (BLOCK_TYPES.map((type, index) => {
     return (
       <StyleButton
+        key={`block_button_${index}`}
         active={type.style === blockType}
         label={<i className={type.label}></i>}
         style={type.style}

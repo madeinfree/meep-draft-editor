@@ -1,7 +1,8 @@
-import Styles from 'meepworks/styles';
-import userSelectNone from '../lib/user-select-none';
+import Styles from './lib/styles';
+import userSelectNone from './lib/user-select-none';
 export default new Styles({
   root: {
+    position: 'relative',
     fontFamily: '\'Georgia\', serif',
     fontSize: 14,
     marginTop: '20px',
