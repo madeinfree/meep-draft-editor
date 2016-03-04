@@ -12,6 +12,7 @@ npm install meep-draft-editor font-awesome --save
 ### .bablerc
 ```javascript
 {
+  "presets": ["es2015", "react", "stage-0"],
   "plugins": ["typecheck", "syntax-flow", "transform-flow-strip-types"]
 }
 ```
