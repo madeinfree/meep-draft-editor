@@ -4,28 +4,44 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _styles = require('meepworks/styles');
+var _editor;
+
+var _styles = require('./lib/styles');
 
 var _styles2 = _interopRequireDefault(_styles);
 
-var _userSelectNone = require('../lib/user-select-none');
+var _userSelectNone = require('./lib/user-select-none');
 
 var _userSelectNone2 = _interopRequireDefault(_userSelectNone);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 exports.default = new _styles2.default({
   root: {
+    background: '#fff',
     fontFamily: '\'Georgia\', serif',
-    fontSize: 14,
-    marginTop: '20px'
+    fontSize: '14px'
   },
-  editor: {
+  editor: (_editor = {
+    border: '1px solid #59bcc9',
     cursor: 'text',
-    fontSize: 16,
-    minHeight: 150,
-    border: '1px solid #59bcc9'
-  },
+    fontSize: '16px',
+
+    "public-DraftEditorPlaceholder-root": {
+      padding: '15px'
+    },
+    "public-DraftEditor-content": {
+      padding: '15px'
+    }
+  }, _defineProperty(_editor, 'public-DraftEditor-content', {
+    minHeight: '100px'
+  }), _defineProperty(_editor, "public-DraftStyleDefault-pre", {
+    fontFamily: "'Inconsolata', 'Menlo', 'Consolas', monospace",
+    fontSize: '16px',
+    padding: '20px'
+  }), _editor),
   controls: {
     fontFamily: '\'Helvetica\', sans-serif',
     fontSize: 14,

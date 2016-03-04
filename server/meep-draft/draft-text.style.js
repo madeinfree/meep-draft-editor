@@ -2,16 +2,29 @@ import Styles from './lib/styles';
 import userSelectNone from './lib/user-select-none';
 export default new Styles({
   root: {
-    position: 'relative',
+    background: '#fff',
     fontFamily: '\'Georgia\', serif',
-    fontSize: 14,
-    marginTop: '20px',
+    fontSize: '14px',
   },
   editor: {
-    cursor: 'text',
-    fontSize: 16,
-    minHeight: 150,
     border: '1px solid #59bcc9',
+    cursor: 'text',
+    fontSize: '16px',
+
+    "public-DraftEditorPlaceholder-root": {
+      padding: '15px'
+    },
+    "public-DraftEditor-content": {
+      padding: '15px'
+    },
+    "public-DraftEditor-content": {
+      minHeight: '100px',
+    },
+    "public-DraftStyleDefault-pre": {
+      fontFamily: "'Inconsolata', 'Menlo', 'Consolas', monospace",
+      fontSize: '16px',
+      padding: '20px',
+    },
   },
   controls: {
     fontFamily: '\'Helvetica\', sans-serif',

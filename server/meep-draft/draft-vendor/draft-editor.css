@@ -1,0 +1,8 @@
+.public-DraftEditorPlaceholder-root {
+  color: #ccc;
+  position: absolute;
+}
+.public-DraftEditor-content {
+  outline: none;
+  white-space: pre-wrap;
+}

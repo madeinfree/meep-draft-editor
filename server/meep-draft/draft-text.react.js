@@ -35,6 +35,7 @@ import {
 } from './draft-custom-core/custom'
 
 import './draft-vendor/draft-text.css'
+import './draft-vendor/draft-editor.css'
 
 const getBlockStyle = (block) => {
   switch (block.getType()) {
@@ -58,6 +59,15 @@ const findLinkEntities = (contentBlock, callback) => {
   );
 }
 
+const DraftTextHandlers = {
+  hasPlaceholder() {
+    if (this.props.placeholder === undefined) {
+      return this.defaultSetting.placeholder;
+    } else {
+      return this.props.placeholder
+    }
+  }
+}
 
 export default class DraftText extends Component {
   constructor(...args) {
@@ -70,13 +80,23 @@ export default class DraftText extends Component {
       },
     ]);
     //
+    for(let fn in DraftTextHandlers) {
+      if(typeof DraftTextHandlers[fn] === "function") {
+        this[fn] = this::DraftTextHandlers[fn];
+      }
+    }
+    //
+    this.defaultSetting = {
+      placeholder: 'Write somthing...'
+    }
+    //
     this.state = {
       editorState: EditorState.createEmpty(decorator),
       editMode: 0,
+      placeholder: this.hasPlaceholder()
     };
     //
     this.focus = (editorState) => {
-      console.log(editorState.getSelection().hasFocus)
       this.refs.editor.focus();
     }
     //
@@ -354,16 +374,30 @@ export default class DraftText extends Component {
         />
       </span>
     ) : (null)
+    this.checkRootStyle = () => {
+      return (this.props.editorStyle !== undefined) && (this.props.editorStyle.root !== undefined)
+    }
+    this.checkRootControlStyle = () => {
+      return (this.props.editorStyle !== undefined) && (this.props.editorStyle['root-control'] !== undefined)
+    }
+    this.checkRootInputStyle = () => {
+      return (this.props.editorStyle !== undefined) && (this.props.editorStyle['root-input'] !== undefined)
+    }
+    let rootStyle = this.checkRootStyle ? (this.props.editorStyle.root) : ({})
+    let rootControlStyle = this.checkRootControlStyle ? (this.props.editorStyle['root-control']) : ({})
+    let rootInputStyle = this.checkRootInputStyle ? (this.props.editorStyle['root-input']) : ({})
     return (
-      <div style={styles.root}>
+      <div style={merge(styles.root, rootStyle)}>
           <div>
             <FontFamilyControls
               editorState={editorState}
               onToggle={this.toggleFontFamily}
+              customStyle={rootControlStyle}
             />
             <FontSizeControls
               editorState={editorState}
               onToggle={this.toggleFontSize}
+              customStyle={rootControlStyle}
             />
             <TextControls
               editorState={editorState}
@@ -390,7 +424,7 @@ export default class DraftText extends Component {
             />
             {StateLog}
           </div>
-        <div style={styles.editor} onClick={()=>{
+        <div style={merge(styles.editor, rootInputStyle)} onClick={()=>{
               this.focus(editorState)
             }
           }>
@@ -399,9 +433,10 @@ export default class DraftText extends Component {
             editorState={editorState}
             readOnly={false}
             onChange={this.onChange}
-            placeholder=" "
+            placeholder={this.state.placeholder}
             blockStyleFn={getBlockStyle}
             ref="editor"
+            suppressContentEditableWarning={false}
           />
         </div>
       </div>
@@ -460,13 +495,15 @@ class FontFamilyControls extends Component {
         {itemMap}
       </div>
     ) : ( null )
+    let customControlStyle = this.props.customStyle
     return (
       <div
         style={styles.meepEditorInline}
       >
         <div
           style={merge(styles.meepEditorSelectMainBox,
-                      this.state.onOpen?styles.meepEditorSelectMainBoxOpen:null)}
+                       customControlStyle,
+                       this.state.onOpen?styles.meepEditorSelectMainBoxOpen:null)}
         >
           <div
             onClick={this._onOpen}
@@ -527,13 +564,15 @@ class FontSizeControls extends Component {
         {itemMap}
       </div>
     ) : ( null )
+    let customControlStyle = this.props.customStyle
     return (
       <div
         style={styles.meepEditorInline}
       >
         <div
           style={merge(styles.meepEditorSelectMainBox,
-                      this.state.onOpen?styles.meepEditorSelectMainBoxOpen:{})}
+                       customControlStyle,
+                       this.state.onOpen?styles.meepEditorSelectMainBoxOpen:{})}
         >
           <div
             onClick={this._onOpen}
@@ -656,7 +695,9 @@ const TextControls = (props) => {
   return (
     <div
       style={
-        merge(styles.controls, styles.meepEditorInline)
+        merge(styles.controls,
+              styles.meepEditorInline,
+             )
       }
     >
       {button}
@@ -936,28 +977,16 @@ class BackgroundButton extends Component {
   }
 }
 
-class SelectButton extends Component {
-  constructor(props) {
-    super(props);
-    this.onToggle = (e) => {
-      e.preventDefault();
-      this.props.onToggle(e.target.value);
-    };
-  }
-  render() {
-    return (
-      <select
-        style={styles.meepEditorActionSelect}
-        onChange={this.onToggle}
-      >
-        <option value="FONTSIZE-10">10px</option>
-        <option value="FONTSIZE-13">13px</option>
-        <option value="FONTSIZE-16">16px</option>
-        <option value="FONTSIZE-20">20px</option>
-        <option value="FONTSIZE-24">24px</option>
-        <option value="FONTSIZE-28">28px</option>
-        <option value="FONTSIZE-32">32px</option>
-      </select>
-    );
-  }
-}
+/*
+  暫時解決 React DOM editor 時會出現警告錯誤，等待 React 15.0 版修正。
+  issue: https://github.com/facebook/react/issues/5837
+ */
+console.error = (function() {
+    var error = console.error
+
+    return function(exception) {
+        if ((exception + '').indexOf('Warning: A component is `contentEditable`') != 0) {
+            error.apply(console, arguments)
+        }
+    }
+})()

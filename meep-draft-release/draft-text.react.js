@@ -4,6 +4,8 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _react = require('react');
@@ -14,11 +16,7 @@ var _reactDom = require('react-dom');
 
 var _reactDom2 = _interopRequireDefault(_reactDom);
 
-var _component = require('meepworks/component');
-
-var _component2 = _interopRequireDefault(_component);
-
-var _merge = require('meepworks/merge');
+var _merge = require('./lib/merge.js');
 
 var _merge2 = _interopRequireDefault(_merge);
 
@@ -36,7 +34,9 @@ var _inline = require('./draft-type-core/inline');
 
 var _custom = require('./draft-custom-core/custom');
 
-require('./draft-vendor/draft-text.css!');
+require('./draft-vendor/draft-text.css');
+
+require('./draft-vendor/draft-editor.css');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -45,6 +45,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+// import Component from 'meepworks/component';
+// import merge from 'meepworks/merge';
+
 
 //type-core
 
@@ -69,6 +72,16 @@ var findLinkEntities = function findLinkEntities(contentBlock, callback) {
     var entityKey = character.getEntity();
     return entityKey !== null && _draftJs.Entity.get(entityKey).getType() === 'link';
   }, callback);
+};
+
+var DraftTextHandlers = {
+  hasPlaceholder: function hasPlaceholder() {
+    if (this.props.placeholder === undefined) {
+      return this.defaultSetting.placeholder;
+    } else {
+      return this.props.placeholder;
+    }
+  }
 };
 
 var DraftText = function (_Component) {
@@ -240,17 +253,55 @@ var DraftText = function (_Component) {
       component: Link
     }]);
     //
-    _this.state = {
-      editorState: _draftJs.EditorState.createEmpty(decorator),
-      editMode: 0
+    for (var fn in DraftTextHandlers) {
+      if (typeof DraftTextHandlers[fn] === "function") {
+        _this[fn] = DraftTextHandlers[fn].bind(_this);
+      }
+    }
+    //
+    _this.defaultSetting = {
+      placeholder: 'Write somthing...'
     };
     //
-    _this.focus = function () {
-      return _this.refs.editor.focus();
+    _this.state = {
+      editorState: _draftJs.EditorState.createEmpty(decorator),
+      editMode: 0,
+      placeholder: _this.hasPlaceholder()
+    };
+    //
+    _this.focus = function (editorState) {
+      _this.refs.editor.focus();
     };
     //
     _this.onChange = function (editorState) {
-      return _this.setState({ editorState: editorState });
+      _this.setState({ editorState: editorState });
+
+      _this.stateCache(_this.props.onEditorChange, editorState);
+      // console.log(editorState.getCurrentContent()
+      //                        .getBlockForKey(editorState.getSelection().getStartKey())
+      //                        .getText())
+    };
+    _this.stateCache = function (EditorChange, editorState) {
+      if (!(typeof EditorChange === 'function')) {
+        throw new TypeError('Value of argument "EditorChange" violates contract.\n\nExpected:\nFunction\n\nGot:\n' + _inspect(EditorChange));
+      }
+
+      if (!(editorState instanceof Object)) {
+        throw new TypeError('Value of argument "editorState" violates contract.\n\nExpected:\nObject\n\nGot:\n' + _inspect(editorState));
+      }
+
+      EditorChange({
+        getEditorState: editorState,
+        getCurrentContent: editorState.getCurrentContent(),
+        getStateText: editorState.getCurrentContent().getBlockForKey(editorState.getSelection().getStartKey()).getText(),
+        getCustomState: function getCustomState(editorStateKey) {
+          if (!(typeof editorStateKey === 'string')) {
+            throw new TypeError('Value of argument "editorStateKey" violates contract.\n\nExpected:\nstring\n\nGot:\n' + _inspect(editorStateKey));
+          }
+
+          return editorState[editorStateKey]();
+        }
+      });
     };
     //
     _this.onDoHandle = function (editorState, action) {
@@ -303,6 +354,8 @@ var DraftText = function (_Component) {
   _createClass(DraftText, [{
     key: 'render',
     value: function render() {
+      var _this2 = this;
+
       var editorState = this.state.editorState;
 
       var StateLog = this.state.editMode ? _react2.default.createElement(
@@ -314,19 +367,33 @@ var DraftText = function (_Component) {
           onClick: this.logClear
         })
       ) : null;
+      this.checkRootStyle = function () {
+        return _this2.props.editorStyle !== undefined && _this2.props.editorStyle.root !== undefined;
+      };
+      this.checkRootControlStyle = function () {
+        return _this2.props.editorStyle !== undefined && _this2.props.editorStyle['root-control'] !== undefined;
+      };
+      this.checkRootInputStyle = function () {
+        return _this2.props.editorStyle !== undefined && _this2.props.editorStyle['root-input'] !== undefined;
+      };
+      var rootStyle = this.checkRootStyle ? this.props.editorStyle.root : {};
+      var rootControlStyle = this.checkRootControlStyle ? this.props.editorStyle['root-control'] : {};
+      var rootInputStyle = this.checkRootInputStyle ? this.props.editorStyle['root-input'] : {};
       return _react2.default.createElement(
         'div',
-        { style: _draftText2.default.root },
+        { style: (0, _merge2.default)(_draftText2.default.root, rootStyle) },
         _react2.default.createElement(
           'div',
           null,
           _react2.default.createElement(FontFamilyControls, {
             editorState: editorState,
-            onToggle: this.toggleFontFamily
+            onToggle: this.toggleFontFamily,
+            customStyle: rootControlStyle
           }),
           _react2.default.createElement(FontSizeControls, {
             editorState: editorState,
-            onToggle: this.toggleFontSize
+            onToggle: this.toggleFontSize,
+            customStyle: rootControlStyle
           }),
           _react2.default.createElement(TextControls, {
             editorState: editorState,
@@ -355,14 +422,18 @@ var DraftText = function (_Component) {
         ),
         _react2.default.createElement(
           'div',
-          { style: _draftText2.default.editor, onClick: this.focus },
+          { style: (0, _merge2.default)(_draftText2.default.editor, rootInputStyle), onClick: function onClick() {
+              _this2.focus(editorState);
+            } },
           _react2.default.createElement(_draftJs.Editor, {
             customStyleMap: (0, _merge2.default)(_custom.COLORS, _custom.BACKGROUNDCOLORS, _custom.ALIGN, _custom.FONTSIZE, _custom.FONTFAMILY),
             editorState: editorState,
+            readOnly: false,
             onChange: this.onChange,
-            placeholder: ' ',
+            placeholder: this.state.placeholder,
             blockStyleFn: getBlockStyle,
-            ref: 'editor'
+            ref: 'editor',
+            suppressContentEditableWarning: false
           })
         )
       );
@@ -370,7 +441,7 @@ var DraftText = function (_Component) {
   }]);
 
   return DraftText;
-}(_component2.default);
+}(_react.Component);
 
 exports.default = DraftText;
 ;
@@ -393,24 +464,24 @@ var FontFamilyControls = function (_Component2) {
   function FontFamilyControls(props, context) {
     _classCallCheck(this, FontFamilyControls);
 
-    var _this2 = _possibleConstructorReturn(this, Object.getPrototypeOf(FontFamilyControls).call(this, props, context));
+    var _this3 = _possibleConstructorReturn(this, Object.getPrototypeOf(FontFamilyControls).call(this, props, context));
 
-    _this2.state = {
+    _this3.state = {
       onOpen: false
     };
 
-    _this2._onOpen = function () {
-      _this2.setState({
-        onOpen: !_this2.state.onOpen
+    _this3._onOpen = function () {
+      _this3.setState({
+        onOpen: !_this3.state.onOpen
       });
     };
-    return _this2;
+    return _this3;
   }
 
   _createClass(FontFamilyControls, [{
     key: 'render',
     value: function render() {
-      var _this3 = this;
+      var _this4 = this;
 
       var currentStyle = this.props.editorState.getCurrentInlineStyle();
       var fontFamily = 'Arial';
@@ -420,10 +491,11 @@ var FontFamilyControls = function (_Component2) {
         }
         return _react2.default.createElement(SelectFamilyItem, {
           active: currentStyle.has(_inline.FONTFAMILYSTYLE[idx].style),
+          key: 'font_family_button_' + idx,
           size: family,
           style: _inline.FONTFAMILYSTYLE[idx].style,
-          onToggle: _this3.props.onToggle,
-          onOpen: _this3._onOpen
+          onToggle: _this4.props.onToggle,
+          onOpen: _this4._onOpen
         });
       });
       var items = this.state.onOpen ? _react2.default.createElement(
@@ -433,6 +505,7 @@ var FontFamilyControls = function (_Component2) {
         },
         itemMap
       ) : null;
+      var customControlStyle = this.props.customStyle;
       return _react2.default.createElement(
         'div',
         {
@@ -441,7 +514,7 @@ var FontFamilyControls = function (_Component2) {
         _react2.default.createElement(
           'div',
           {
-            style: (0, _merge2.default)(_draftText2.default.meepEditorSelectMainBox, this.state.onOpen ? _draftText2.default.meepEditorSelectMainBoxOpen : null)
+            style: (0, _merge2.default)(_draftText2.default.meepEditorSelectMainBox, customControlStyle, this.state.onOpen ? _draftText2.default.meepEditorSelectMainBoxOpen : null)
           },
           _react2.default.createElement(
             'div',
@@ -466,7 +539,7 @@ var FontFamilyControls = function (_Component2) {
   }]);
 
   return FontFamilyControls;
-}(_component2.default);
+}(_react.Component);
 
 var FontSizeControls = function (_Component3) {
   _inherits(FontSizeControls, _Component3);
@@ -474,24 +547,24 @@ var FontSizeControls = function (_Component3) {
   function FontSizeControls(props, context) {
     _classCallCheck(this, FontSizeControls);
 
-    var _this4 = _possibleConstructorReturn(this, Object.getPrototypeOf(FontSizeControls).call(this, props, context));
+    var _this5 = _possibleConstructorReturn(this, Object.getPrototypeOf(FontSizeControls).call(this, props, context));
 
-    _this4.state = {
+    _this5.state = {
       onOpen: false
     };
 
-    _this4._onOpen = function () {
-      _this4.setState({
-        onOpen: !_this4.state.onOpen
+    _this5._onOpen = function () {
+      _this5.setState({
+        onOpen: !_this5.state.onOpen
       });
     };
-    return _this4;
+    return _this5;
   }
 
   _createClass(FontSizeControls, [{
     key: 'render',
     value: function render() {
-      var _this5 = this;
+      var _this6 = this;
 
       var currentStyle = this.props.editorState.getCurrentInlineStyle();
       var fontSize = 10;
@@ -501,10 +574,11 @@ var FontSizeControls = function (_Component3) {
         }
         return _react2.default.createElement(SelectItem, {
           active: currentStyle.has(_inline.FONTSIZESTYLE[idx].style),
+          key: 'font_size_button_' + idx,
           size: size,
           style: _inline.FONTSIZESTYLE[idx].style,
-          onToggle: _this5.props.onToggle,
-          onOpen: _this5._onOpen
+          onToggle: _this6.props.onToggle,
+          onOpen: _this6._onOpen
         });
       });
       var items = this.state.onOpen ? _react2.default.createElement(
@@ -514,6 +588,7 @@ var FontSizeControls = function (_Component3) {
         },
         itemMap
       ) : null;
+      var customControlStyle = this.props.customStyle;
       return _react2.default.createElement(
         'div',
         {
@@ -522,7 +597,7 @@ var FontSizeControls = function (_Component3) {
         _react2.default.createElement(
           'div',
           {
-            style: (0, _merge2.default)(_draftText2.default.meepEditorSelectMainBox, this.state.onOpen ? _draftText2.default.meepEditorSelectMainBoxOpen : null)
+            style: (0, _merge2.default)(_draftText2.default.meepEditorSelectMainBox, customControlStyle, this.state.onOpen ? _draftText2.default.meepEditorSelectMainBoxOpen : {})
           },
           _react2.default.createElement(
             'div',
@@ -548,7 +623,7 @@ var FontSizeControls = function (_Component3) {
   }]);
 
   return FontSizeControls;
-}(_component2.default);
+}(_react.Component);
 
 var SelectItem = function (_Component4) {
   _inherits(SelectItem, _Component4);
@@ -556,34 +631,34 @@ var SelectItem = function (_Component4) {
   function SelectItem(props, context) {
     _classCallCheck(this, SelectItem);
 
-    var _this6 = _possibleConstructorReturn(this, Object.getPrototypeOf(SelectItem).call(this, props, context));
+    var _this7 = _possibleConstructorReturn(this, Object.getPrototypeOf(SelectItem).call(this, props, context));
 
-    _this6.state = {
+    _this7.state = {
       hover: false
     };
 
-    _this6.onToggle = function (e) {
+    _this7.onToggle = function (e) {
       e.preventDefault();
-      _this6.props.onToggle(_this6.props.style);
+      _this7.props.onToggle(_this7.props.style);
     };
 
-    _this6._onHover = function () {
-      _this6.setState({
+    _this7._onHover = function () {
+      _this7.setState({
         hover: true
       });
     };
-    _this6._onLeave = function () {
-      _this6.setState({
+    _this7._onLeave = function () {
+      _this7.setState({
         hover: false
       });
     };
-    return _this6;
+    return _this7;
   }
 
   _createClass(SelectItem, [{
     key: 'render',
     value: function render() {
-      var _this7 = this;
+      var _this8 = this;
 
       return _react2.default.createElement(
         'span',
@@ -592,8 +667,8 @@ var SelectItem = function (_Component4) {
           onMouseOver: this._onHover,
           onMouseLeave: this._onLeave,
           onClick: function onClick(event) {
-            _this7.onToggle(event);
-            _this7.props.onOpen();
+            _this8.onToggle(event);
+            _this8.props.onOpen();
           }
         },
         this.props.size,
@@ -603,7 +678,7 @@ var SelectItem = function (_Component4) {
   }]);
 
   return SelectItem;
-}(_component2.default);
+}(_react.Component);
 
 var SelectFamilyItem = function (_Component5) {
   _inherits(SelectFamilyItem, _Component5);
@@ -611,34 +686,34 @@ var SelectFamilyItem = function (_Component5) {
   function SelectFamilyItem(props, context) {
     _classCallCheck(this, SelectFamilyItem);
 
-    var _this8 = _possibleConstructorReturn(this, Object.getPrototypeOf(SelectFamilyItem).call(this, props, context));
+    var _this9 = _possibleConstructorReturn(this, Object.getPrototypeOf(SelectFamilyItem).call(this, props, context));
 
-    _this8.state = {
+    _this9.state = {
       hover: false
     };
 
-    _this8.onToggle = function (e) {
+    _this9.onToggle = function (e) {
       e.preventDefault();
-      _this8.props.onToggle(_this8.props.style);
+      _this9.props.onToggle(_this9.props.style);
     };
 
-    _this8._onHover = function () {
-      _this8.setState({
+    _this9._onHover = function () {
+      _this9.setState({
         hover: true
       });
     };
-    _this8._onLeave = function () {
-      _this8.setState({
+    _this9._onLeave = function () {
+      _this9.setState({
         hover: false
       });
     };
-    return _this8;
+    return _this9;
   }
 
   _createClass(SelectFamilyItem, [{
     key: 'render',
     value: function render() {
-      var _this9 = this;
+      var _this10 = this;
 
       return _react2.default.createElement(
         'span',
@@ -647,8 +722,8 @@ var SelectFamilyItem = function (_Component5) {
           onMouseOver: this._onHover,
           onMouseLeave: this._onLeave,
           onClick: function onClick(event) {
-            _this9.onToggle(event);
-            _this9.props.onOpen();
+            _this10.onToggle(event);
+            _this10.props.onOpen();
           }
         },
         this.props.size
@@ -657,12 +732,13 @@ var SelectFamilyItem = function (_Component5) {
   }]);
 
   return SelectFamilyItem;
-}(_component2.default);
+}(_react.Component);
 
 var TextControls = function TextControls(props) {
   var currentStyle = props.editorState.getCurrentInlineStyle();
-  var button = _inline.TEXTSTYLE.map(function (type) {
+  var button = _inline.TEXTSTYLE.map(function (type, index) {
     return _react2.default.createElement(StyleButton, {
+      key: 'text_button_' + index,
       active: currentStyle.has(type.style),
       label: _react2.default.createElement('i', { className: type.label }),
       style: type.style,
@@ -712,8 +788,9 @@ var BlockControls = function BlockControls(props) {
 
   var selection = editorState.getSelection();
   var blockType = editorState.getCurrentContent().getBlockForKey(selection.getStartKey()).getType();
-  var button = _block2.default.map(function (type) {
+  var button = _block2.default.map(function (type, index) {
     return _react2.default.createElement(StyleButton, {
+      key: 'block_button_' + index,
       active: type.style === blockType,
       label: _react2.default.createElement('i', { className: type.label }),
       style: type.style,
@@ -735,24 +812,24 @@ var ColorControls = function (_Component6) {
   function ColorControls(props, context) {
     _classCallCheck(this, ColorControls);
 
-    var _this10 = _possibleConstructorReturn(this, Object.getPrototypeOf(ColorControls).call(this, props, context));
+    var _this11 = _possibleConstructorReturn(this, Object.getPrototypeOf(ColorControls).call(this, props, context));
 
-    _this10.state = {
+    _this11.state = {
       isOpen: false
     };
 
-    _this10._onOpen = function () {
-      _this10.setState({
-        isOpen: !_this10.state.isOpen
+    _this11._onOpen = function () {
+      _this11.setState({
+        isOpen: !_this11.state.isOpen
       });
     };
-    return _this10;
+    return _this11;
   }
 
   _createClass(ColorControls, [{
     key: 'render',
     value: function render() {
-      var _this11 = this;
+      var _this12 = this;
 
       var editorState = this.props.editorState;
 
@@ -762,7 +839,7 @@ var ColorControls = function (_Component6) {
           active: currentStyle.has(type.style),
           label: type.label,
           style: type.style,
-          onToggle: _this11.props.onToggle
+          onToggle: _this12.props.onToggle
         });
       }) : null;
       return _react2.default.createElement(
@@ -790,7 +867,7 @@ var ColorControls = function (_Component6) {
   }]);
 
   return ColorControls;
-}(_component2.default);
+}(_react.Component);
 
 var BackgroundControls = function (_Component7) {
   _inherits(BackgroundControls, _Component7);
@@ -798,24 +875,24 @@ var BackgroundControls = function (_Component7) {
   function BackgroundControls(props, context) {
     _classCallCheck(this, BackgroundControls);
 
-    var _this12 = _possibleConstructorReturn(this, Object.getPrototypeOf(BackgroundControls).call(this, props, context));
+    var _this13 = _possibleConstructorReturn(this, Object.getPrototypeOf(BackgroundControls).call(this, props, context));
 
-    _this12.state = {
+    _this13.state = {
       isOpen: false
     };
 
-    _this12._onOpen = function () {
-      _this12.setState({
-        isOpen: !_this12.state.isOpen
+    _this13._onOpen = function () {
+      _this13.setState({
+        isOpen: !_this13.state.isOpen
       });
     };
-    return _this12;
+    return _this13;
   }
 
   _createClass(BackgroundControls, [{
     key: 'render',
     value: function render() {
-      var _this13 = this;
+      var _this14 = this;
 
       var editorState = this.props.editorState;
 
@@ -825,7 +902,7 @@ var BackgroundControls = function (_Component7) {
           active: currentStyle.has(type.style),
           label: type.label,
           style: type.style,
-          onToggle: _this13.props.onToggle
+          onToggle: _this14.props.onToggle
         });
       }) : null;
       return _react2.default.createElement(
@@ -853,7 +930,7 @@ var BackgroundControls = function (_Component7) {
   }]);
 
   return BackgroundControls;
-}(_component2.default);
+}(_react.Component);
 
 var ContentControls = function ContentControls(props) {
   return _react2.default.createElement(
@@ -888,14 +965,14 @@ var ContentButton = function (_Component8) {
   _createClass(ContentButton, [{
     key: 'render',
     value: function render() {
-      var _this15 = this;
+      var _this16 = this;
 
       return _react2.default.createElement(
         'span',
         {
           style: (0, _merge2.default)(_draftText2.default.meepEditorDefaultColor, _draftText2.default.meepEditorDefaultButton),
           onMouseDown: function onMouseDown() {
-            _this15.props.onDoHandle(_this15.props.editorState, _this15.props.doAction);
+            _this16.props.onDoHandle(_this16.props.editorState, _this16.props.doAction);
           }
         },
         this.props.label
@@ -904,7 +981,7 @@ var ContentButton = function (_Component8) {
   }]);
 
   return ContentButton;
-}(_component2.default);
+}(_react.Component);
 
 var StyleButton = function (_Component9) {
   _inherits(StyleButton, _Component9);
@@ -912,13 +989,13 @@ var StyleButton = function (_Component9) {
   function StyleButton(props) {
     _classCallCheck(this, StyleButton);
 
-    var _this16 = _possibleConstructorReturn(this, Object.getPrototypeOf(StyleButton).call(this, props));
+    var _this17 = _possibleConstructorReturn(this, Object.getPrototypeOf(StyleButton).call(this, props));
 
-    _this16.onToggle = function (e) {
+    _this17.onToggle = function (e) {
       e.preventDefault();
-      _this16.props.onToggle(_this16.props.style);
+      _this17.props.onToggle(_this17.props.style);
     };
-    return _this16;
+    return _this17;
   }
 
   _createClass(StyleButton, [{
@@ -947,7 +1024,7 @@ var StyleButton = function (_Component9) {
   }]);
 
   return StyleButton;
-}(_component2.default);
+}(_react.Component);
 
 var ColorButton = function (_Component10) {
   _inherits(ColorButton, _Component10);
@@ -955,13 +1032,13 @@ var ColorButton = function (_Component10) {
   function ColorButton(props) {
     _classCallCheck(this, ColorButton);
 
-    var _this17 = _possibleConstructorReturn(this, Object.getPrototypeOf(ColorButton).call(this, props));
+    var _this18 = _possibleConstructorReturn(this, Object.getPrototypeOf(ColorButton).call(this, props));
 
-    _this17.onToggle = function (e) {
+    _this18.onToggle = function (e) {
       e.preventDefault();
-      _this17.props.onToggle(_this17.props.style);
+      _this18.props.onToggle(_this18.props.style);
     };
-    return _this17;
+    return _this18;
   }
 
   _createClass(ColorButton, [{
@@ -983,7 +1060,7 @@ var ColorButton = function (_Component10) {
   }]);
 
   return ColorButton;
-}(_component2.default);
+}(_react.Component);
 
 var BackgroundButton = function (_Component11) {
   _inherits(BackgroundButton, _Component11);
@@ -991,13 +1068,13 @@ var BackgroundButton = function (_Component11) {
   function BackgroundButton(props) {
     _classCallCheck(this, BackgroundButton);
 
-    var _this18 = _possibleConstructorReturn(this, Object.getPrototypeOf(BackgroundButton).call(this, props));
+    var _this19 = _possibleConstructorReturn(this, Object.getPrototypeOf(BackgroundButton).call(this, props));
 
-    _this18.onToggle = function (e) {
+    _this19.onToggle = function (e) {
       e.preventDefault();
-      _this18.props.onToggle(_this18.props.style);
+      _this19.props.onToggle(_this19.props.style);
     };
-    return _this18;
+    return _this19;
   }
 
   _createClass(BackgroundButton, [{
@@ -1018,70 +1095,92 @@ var BackgroundButton = function (_Component11) {
   }]);
 
   return BackgroundButton;
-}(_component2.default);
+}(_react.Component);
 
-var SelectButton = function (_Component12) {
-  _inherits(SelectButton, _Component12);
+/*暫時解決 React DOM editor 時會出現警告錯誤，等待 React 15.0 版修正。
+  issue: https://github.com/facebook/react/issues/5837
+ */
 
-  function SelectButton(props) {
-    _classCallCheck(this, SelectButton);
 
-    var _this19 = _possibleConstructorReturn(this, Object.getPrototypeOf(SelectButton).call(this, props));
+console.error = function () {
+  var error = console.error;
 
-    _this19.onToggle = function (e) {
-      e.preventDefault();
-      _this19.props.onToggle(e.target.value);
-    };
-    return _this19;
+  return function (exception) {
+    if ((exception + '').indexOf('Warning: A component is `contentEditable`') != 0) {
+      error.apply(console, arguments);
+    }
+  };
+}();
+
+function _inspect(input, depth) {
+  var maxDepth = 4;
+  var maxKeys = 15;
+
+  if (depth === undefined) {
+    depth = 0;
   }
 
-  _createClass(SelectButton, [{
-    key: 'render',
-    value: function render() {
-      return _react2.default.createElement(
-        'select',
-        {
-          style: _draftText2.default.meepEditorActionSelect,
-          onChange: this.onToggle
-        },
-        _react2.default.createElement(
-          'option',
-          { value: 'FONTSIZE-10' },
-          '10px'
-        ),
-        _react2.default.createElement(
-          'option',
-          { value: 'FONTSIZE-13' },
-          '13px'
-        ),
-        _react2.default.createElement(
-          'option',
-          { value: 'FONTSIZE-16' },
-          '16px'
-        ),
-        _react2.default.createElement(
-          'option',
-          { value: 'FONTSIZE-20' },
-          '20px'
-        ),
-        _react2.default.createElement(
-          'option',
-          { value: 'FONTSIZE-24' },
-          '24px'
-        ),
-        _react2.default.createElement(
-          'option',
-          { value: 'FONTSIZE-28' },
-          '28px'
-        ),
-        _react2.default.createElement(
-          'option',
-          { value: 'FONTSIZE-32' },
-          '32px'
-        )
-      );
-    }
-  }]);
+  depth += 1;
 
-  return SelectButton;
-}(_component2.default);
+  if (input === null) {
+    return 'null';
+  } else if (input === undefined) {
+    return 'void';
+  } else if (typeof input === 'string' || typeof input === 'number' || typeof input === 'boolean') {
+    return typeof input === 'undefined' ? 'undefined' : _typeof(input);
+  } else if (Array.isArray(input)) {
+    if (input.length > 0) {
+      var _ret = function () {
+        if (depth > maxDepth) return {
+            v: '[...]'
+          };
+
+        var first = _inspect(input[0], depth);
+
+        if (input.every(function (item) {
+          return _inspect(item, depth) === first;
+        })) {
+          return {
+            v: first.trim() + '[]'
+          };
+        } else {
+          return {
+            v: '[' + input.slice(0, maxKeys).map(function (item) {
+              return _inspect(item, depth);
+            }).join(', ') + (input.length >= maxKeys ? ', ...' : '') + ']'
+          };
+        }
+      }();
+
+      if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
+    } else {
+      return 'Array';
+    }
+  } else {
+    var keys = Object.keys(input);
+
+    if (!keys.length) {
+      if (input.constructor && input.constructor.name && input.constructor.name !== 'Object') {
+        return input.constructor.name;
+      } else {
+        return 'Object';
+      }
+    }
+
+    if (depth > maxDepth) return '{...}';
+    var indent = '  '.repeat(depth - 1);
+    var entries = keys.slice(0, maxKeys).map(function (key) {
+      return (/^([A-Z_$][A-Z0-9_$]*)$/i.test(key) ? key : JSON.stringify(key)) + ': ' + _inspect(input[key], depth) + ';';
+    }).join('\n  ' + indent);
+
+    if (keys.length >= maxKeys) {
+      entries += '\n  ' + indent + '...';
+    }
+
+    if (input.constructor && input.constructor.name && input.constructor.name !== 'Object') {
+      return input.constructor.name + ' {\n  ' + indent + entries + '\n' + indent + '}';
+    } else {
+      return '{\n  ' + indent + entries + '\n' + indent + '}';
+    }
+  }
+}

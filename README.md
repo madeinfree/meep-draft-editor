@@ -2,7 +2,6 @@
 
 ##### Github: https://github.com/madeinfree/meep-draft-editor
 ##### Npm: https://www.npmjs.com/package/meep-draft-editor
-##### 版本: 1.1.0
 
 # Installation
 ```
@@ -41,6 +40,27 @@ module: {
       }
     ]
   }
+```
+
+# Editor component custom style config
+```javascript
+const editorStyle = {
+  "root": {
+    padding: '20px',
+    border: '1px solid #ccc',
+    width: '670px'
+  },
+  "root-control": {
+    color: '#000',
+    fontSize: '40px'
+  },
+  "root-input": {
+    minHeight: '150px',
+    color: '#ccc',
+    border: '3px solid #ccc',
+    width: '620px'
+  }
+}
 ```
 
 # dependencies
@@ -113,6 +133,38 @@ ReactDom.render(
   document.getElementById('app')
 );
 ```
+## 自訂樣式方法
+```javascript
+import MeepDraftEditor from 'meep-draft-editor';
+
+ReactDom.render(
+  <MeepDraftEditor
+    onEditorChange={(state) => {
+      //此方法必須要參考 Draft.js api 文件使用 http://facebook.github.io/draft-js/docs/overview.html#content
+      //state.getCustomState 會返回一個 editorState 的方法提供使用
+      console.log(state.getCustomState('getSelection').getStartKey()) //取得自訂 getCustomState 物件資訊
+    }}
+    editorStyle={editorStyle}
+  />,
+  document.getElementById('app')
+);
+```
+## 自訂輸入欄位提示方法
+```javascript
+import MeepDraftEditor from 'meep-draft-editor';
+
+ReactDom.render(
+  <MeepDraftEditor
+    onEditorChange={(state) => {
+      //此方法必須要參考 Draft.js api 文件使用 http://facebook.github.io/draft-js/docs/overview.html#content
+      //state.getCustomState 會返回一個 editorState 的方法提供使用
+      console.log(state.getCustomState('getSelection').getStartKey()) //取得自訂 getCustomState 物件資訊
+    }}
+    placeholder="現在可以自訂輸入提示內容,編輯器樣式,控制項目樣式"
+  />,
+  document.getElementById('app')
+);
+```
 
 # CHANGE-LOG
 <2016 - 02 - ..>
@@ -142,6 +194,31 @@ ReactDom.render(
 
 - [x] 使用者能取得自訂的 EditorState 物件資訊
 
+<2016 - 03 - 04>
+
+- 增加
+  - 使用者能自訂尚未輸入任何字時的顯示提示
+
+      - [x] 使用者能取得預設輸入框顯示提示
+
+      - [x] 使用者能自訂輸入框顯示提示
+
+      - [x] 使用者能改變編輯器外觀長、寬高
+
+          - [x] 編輯器分為三部份拆解樣式外觀(root, root-control, root-input)
+
+              - [x] root 樣式更改
+
+              - [x] root-control 樣式更改
+
+              - [x] root-input 樣式更改
+- 去除
+
+  - [x] 點選時瀏覽器預設的選擇提醒外框
+
+  - [x] 去除多餘元件(ButtomSelect)
+
+
 # TODO
 - [ ] 使用者能取得 Editor 元件的相關資訊
 
@@ -151,9 +228,9 @@ ReactDom.render(
 
     - [ ] 使用者能取得元件預設樣式
 
-    - [ ] 使用者能傳入元件自定樣式
+    - [ ] 使用者能傳入元件自訂樣式
 
-- [ ] 使用者能自定編輯器內文字樣式表
+- [ ] 使用者能自訂編輯器內文字樣式表
 
     - [ ] 使用者能取得預設文字樣式表
 
@@ -161,7 +238,13 @@ ReactDom.render(
 
         - [ ] 使用者能自訂 inline 樣式表
 
-        - [ ] 使用者能自定 block 樣式表
+        - [ ] 使用者能自訂 block 樣式表
+
+- [ ] 使用者可選擇控制元件
+
+    - [ ] 使用者能使用預設元件並選擇
+
+    - [ ] 使用者可傳入自訂元件並選擇
 
 # ISSUE
 
