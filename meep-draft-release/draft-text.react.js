@@ -4,8 +4,6 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
-
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _react = require('react');
@@ -16,6 +14,10 @@ var _reactDom = require('react-dom');
 
 var _reactDom2 = _interopRequireDefault(_reactDom);
 
+var _index = require('./components/index.react');
+
+var DefaultControlComponents = _interopRequireWildcard(_index);
+
 var _merge = require('./lib/merge.js');
 
 var _merge2 = _interopRequireDefault(_merge);
@@ -24,7 +26,9 @@ var _draftText = require('./draft-text.style');
 
 var _draftText2 = _interopRequireDefault(_draftText);
 
-var _draftJs = require('draft-js');
+var _Draft = require('./lib/draft-js@fix/lib/Draft');
+
+var _Draft2 = _interopRequireDefault(_Draft);
 
 var _block = require('./draft-type-core/block');
 
@@ -38,6 +42,8 @@ require('./draft-vendor/draft-text.css');
 
 require('./draft-vendor/draft-editor.css');
 
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -45,8 +51,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-// import Component from 'meepworks/component';
-// import merge from 'meepworks/merge';
+// components load
+
+//
 
 
 //type-core
@@ -70,7 +77,7 @@ var getBlockStyle = function getBlockStyle(block) {
 var findLinkEntities = function findLinkEntities(contentBlock, callback) {
   contentBlock.findEntityRanges(function (character) {
     var entityKey = character.getEntity();
-    return entityKey !== null && _draftJs.Entity.get(entityKey).getType() === 'link';
+    return entityKey !== null && _Draft.Entity.get(entityKey).getType() === 'link';
   }, callback);
 };
 
@@ -87,26 +94,20 @@ var DraftTextHandlers = {
 var DraftText = function (_Component) {
   _inherits(DraftText, _Component);
 
-  function DraftText() {
-    var _Object$getPrototypeO;
-
+  function DraftText(props) {
     _classCallCheck(this, DraftText);
-
-    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-      args[_key] = arguments[_key];
-    }
 
     //
 
-    var _this = _possibleConstructorReturn(this, (_Object$getPrototypeO = Object.getPrototypeOf(DraftText)).call.apply(_Object$getPrototypeO, [this].concat(args)));
+    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(DraftText).call(this, props));
 
     _this._onHandlLink = function (e, action) {
       var editorState = _this.state.editorState;
 
       var selection = editorState.getSelection();
-      var entityKey = undefined;
-      var content = undefined;
-      var oldUrl = undefined;
+      var entityKey = void 0;
+      var content = void 0;
+      var oldUrl = void 0;
       switch (action) {
         case 'addLink':
           if (selection.isCollapsed()) {
@@ -114,12 +115,12 @@ var DraftText = function (_Component) {
           }
           var selectedBlockEntityNumber = editorState.getCurrentContent().getBlockForKey(editorState.getSelection().getStartKey()).getEntityAt(editorState.getSelection().getStartOffset());
           if (selectedBlockEntityNumber !== null) {
-            oldUrl = _draftJs.Entity.get(selectedBlockEntityNumber).get('data').href;
+            oldUrl = _Draft.Entity.get(selectedBlockEntityNumber).get('data').href;
           }
           var href = window.prompt('請輸入網址', oldUrl);
           content = editorState.getCurrentContent();
           if (href === null) return;
-          entityKey = _draftJs.Entity.create('link', 'MUTABLE', { href: href });
+          entityKey = _Draft.Entity.create('link', 'MUTABLE', { href: href });
           break;
         case 'removeLink':
           entityKey = null;
@@ -127,7 +128,7 @@ var DraftText = function (_Component) {
           break;
       }
       _this.setState({
-        editorState: _draftJs.RichUtils.toggleLink(editorState, selection, entityKey)
+        editorState: _Draft.RichUtils.toggleLink(editorState, selection, entityKey)
       });
     };
 
@@ -141,17 +142,17 @@ var DraftText = function (_Component) {
       var selection = editorState.getSelection();
       //最多只能一次有一個顏色
       var nextContentState = Object.keys(_custom.FONTFAMILY).reduce(function (contentState, family) {
-        return _draftJs.Modifier.removeInlineStyle(contentState, selection, family);
+        return _Draft.Modifier.removeInlineStyle(contentState, selection, family);
       }, editorState.getCurrentContent());
-      var nextEditorState = _draftJs.EditorState.push(editorState, nextContentState, 'change-inline-style');
+      var nextEditorState = _Draft.EditorState.push(editorState, nextContentState, 'change-inline-style');
       var currentStyle = editorState.getCurrentInlineStyle();
       if (selection.isCollapsed()) {
         nextEditorState = currentStyle.reduce(function (state, family) {
-          return _draftJs.RichUtils.toggleInlineStyle(state, family);
+          return _Draft.RichUtils.toggleInlineStyle(state, family);
         }, nextEditorState);
       }
       if (!currentStyle.has(family)) {
-        nextEditorState = _draftJs.RichUtils.toggleInlineStyle(nextEditorState, family);
+        nextEditorState = _Draft.RichUtils.toggleInlineStyle(nextEditorState, family);
       }
       _this.onChange(nextEditorState);
     };
@@ -162,27 +163,30 @@ var DraftText = function (_Component) {
       var selection = editorState.getSelection();
       //最多只能一次有一個顏色
       var nextContentState = Object.keys(_custom.FONTSIZE).reduce(function (contentState, size) {
-        return _draftJs.Modifier.removeInlineStyle(contentState, selection, size);
+        return _Draft.Modifier.removeInlineStyle(contentState, selection, size);
       }, editorState.getCurrentContent());
-      var nextEditorState = _draftJs.EditorState.push(editorState, nextContentState, 'change-inline-style');
+      var nextEditorState = _Draft.EditorState.push(editorState, nextContentState, 'change-inline-style');
       var currentStyle = editorState.getCurrentInlineStyle();
       if (selection.isCollapsed()) {
+        console.log('gggg1');
         nextEditorState = currentStyle.reduce(function (state, size) {
-          return _draftJs.RichUtils.toggleInlineStyle(state, size);
+          return _Draft.RichUtils.toggleInlineStyle(state, size);
         }, nextEditorState);
       }
       if (!currentStyle.has(size)) {
-        nextEditorState = _draftJs.RichUtils.toggleInlineStyle(nextEditorState, size);
+        nextEditorState = _Draft.RichUtils.toggleInlineStyle(nextEditorState, size);
       }
       _this.onChange(nextEditorState);
     };
 
     _this._toggleInlineStyle = function (inlineStyle) {
-      _this.onChange(_draftJs.RichUtils.toggleInlineStyle(_this.state.editorState, inlineStyle));
+      var editorState = _this.state.editorState;
+
+      _this.onChange(_Draft.RichUtils.toggleInlineStyle(editorState, inlineStyle));
     };
 
     _this._toggleBlockType = function (blockType) {
-      _this.onChange(_draftJs.RichUtils.toggleBlockType(_this.state.editorState, blockType));
+      _this.onChange(_Draft.RichUtils.toggleBlockType(_this.state.editorState, blockType));
     };
 
     _this._toggleColor = function (color) {
@@ -191,17 +195,17 @@ var DraftText = function (_Component) {
       var selection = editorState.getSelection();
       //最多只能一次有一個顏色
       var nextContentState = Object.keys(_custom.COLORS).reduce(function (contentState, color) {
-        return _draftJs.Modifier.removeInlineStyle(contentState, selection, color);
+        return _Draft.Modifier.removeInlineStyle(contentState, selection, color);
       }, editorState.getCurrentContent());
-      var nextEditorState = _draftJs.EditorState.push(editorState, nextContentState, 'change-inline-style');
+      var nextEditorState = _Draft.EditorState.push(editorState, nextContentState, 'change-inline-style');
       var currentStyle = editorState.getCurrentInlineStyle();
       if (selection.isCollapsed()) {
         nextEditorState = currentStyle.reduce(function (state, color) {
-          return _draftJs.RichUtils.toggleInlineStyle(state, color);
+          return _Draft.RichUtils.toggleInlineStyle(state, color);
         }, nextEditorState);
       }
       if (!currentStyle.has(color)) {
-        nextEditorState = _draftJs.RichUtils.toggleInlineStyle(nextEditorState, color);
+        nextEditorState = _Draft.RichUtils.toggleInlineStyle(nextEditorState, color);
       }
       _this.onChange(nextEditorState);
     };
@@ -212,17 +216,17 @@ var DraftText = function (_Component) {
       var selection = editorState.getSelection();
       //最多只能一次有一個顏色
       var nextContentState = Object.keys(_custom.BACKGROUNDCOLORS).reduce(function (contentState, backgroundcolor) {
-        return _draftJs.Modifier.removeInlineStyle(contentState, selection, backgroundcolor);
+        return _Draft.Modifier.removeInlineStyle(contentState, selection, backgroundcolor);
       }, editorState.getCurrentContent());
-      var nextEditorState = _draftJs.EditorState.push(editorState, nextContentState, 'change-inline-style');
+      var nextEditorState = _Draft.EditorState.push(editorState, nextContentState, 'change-inline-style');
       var currentStyle = editorState.getCurrentInlineStyle();
       if (selection.isCollapsed()) {
         nextEditorState = currentStyle.reduce(function (state, backgroundcolor) {
-          return _draftJs.RichUtils.toggleInlineStyle(state, backgroundcolor);
+          return _Draft.RichUtils.toggleInlineStyle(state, backgroundcolor);
         }, nextEditorState);
       }
       if (!currentStyle.has(backgroundcolor)) {
-        nextEditorState = _draftJs.RichUtils.toggleInlineStyle(nextEditorState, backgroundcolor);
+        nextEditorState = _Draft.RichUtils.toggleInlineStyle(nextEditorState, backgroundcolor);
       }
       _this.onChange(nextEditorState);
     };
@@ -232,27 +236,22 @@ var DraftText = function (_Component) {
 
       var selection = editorState.getSelection();
       var nextContentState = Object.keys(_custom.ALIGN).reduce(function (contentState, align) {
-        return _draftJs.Modifier.removeInlineStyle(contentState, selection, align);
+        return _Draft.Modifier.removeInlineStyle(contentState, selection, align);
       }, editorState.getCurrentContent());
-      var nextEditorState = _draftJs.EditorState.push(editorState, nextContentState, 'change-inline-style');
+      var nextEditorState = _Draft.EditorState.push(editorState, nextContentState, 'change-inline-style');
       var currentStyle = editorState.getCurrentInlineStyle();
       if (selection.isCollapsed()) {
         nextEditorState = currentStyle.reduce(function (state, align) {
-          return _draftJs.RichUtils.toggleInlineStyle(state, align);
+          return _Draft.RichUtils.toggleInlineStyle(state, align);
         }, nextEditorState);
       }
       if (!currentStyle.has(align)) {
-        nextEditorState = _draftJs.RichUtils.toggleInlineStyle(nextEditorState, align);
+        nextEditorState = _Draft.RichUtils.toggleInlineStyle(nextEditorState, align);
       }
       _this.onChange(nextEditorState);
-      _this.onChange(_draftJs.RichUtils.toggleBlockType(_this.state.editorState, align));
+      _this.onChange(_Draft.RichUtils.toggleBlockType(_this.state.editorState, align));
     };
 
-    var decorator = new _draftJs.CompositeDecorator([{
-      strategy: findLinkEntities,
-      component: Link
-    }]);
-    //
     for (var fn in DraftTextHandlers) {
       if (typeof DraftTextHandlers[fn] === "function") {
         _this[fn] = DraftTextHandlers[fn].bind(_this);
@@ -264,54 +263,44 @@ var DraftText = function (_Component) {
     };
     //
     _this.state = {
-      editorState: _draftJs.EditorState.createEmpty(decorator),
+      editorState: undefined,
       editMode: 0,
       placeholder: _this.hasPlaceholder()
     };
     //
     _this.focus = function (editorState) {
-      _this.refs.editor.focus();
+      if (editorState.getSelection().getHasFocus()) {
+        _this.refs.editor.focus();
+      }
     };
     //
     _this.onChange = function (editorState) {
       _this.setState({ editorState: editorState });
-
-      _this.stateCache(_this.props.onEditorChange, editorState);
+      _this.stateCache(_this.props.onEditorChange);
       // console.log(editorState.getCurrentContent()
       //                        .getBlockForKey(editorState.getSelection().getStartKey())
       //                        .getText())
     };
-    _this.stateCache = function (EditorChange, editorState) {
-      if (!(typeof EditorChange === 'function')) {
-        throw new TypeError('Value of argument "EditorChange" violates contract.\n\nExpected:\nFunction\n\nGot:\n' + _inspect(EditorChange));
-      }
-
-      if (!(editorState instanceof Object)) {
-        throw new TypeError('Value of argument "editorState" violates contract.\n\nExpected:\nObject\n\nGot:\n' + _inspect(editorState));
-      }
-
+    _this.stateCache = function (EditorChange) {
       EditorChange({
-        getEditorState: editorState,
-        getCurrentContent: editorState.getCurrentContent(),
-        getStateText: editorState.getCurrentContent().getBlockForKey(editorState.getSelection().getStartKey()).getText(),
+        getEditorState: _this.state.editorState,
+        getCurrentContent: _this.state.editorState.getCurrentContent(),
+        getStateText: _this.state.editorState.getCurrentContent().getBlockForKey(_this.state.editorState.getSelection().getStartKey()).getText(),
         getCustomState: function getCustomState(editorStateKey) {
-          if (!(typeof editorStateKey === 'string')) {
-            throw new TypeError('Value of argument "editorStateKey" violates contract.\n\nExpected:\nstring\n\nGot:\n' + _inspect(editorStateKey));
-          }
-
-          return editorState[editorStateKey]();
-        }
+          return _this.state.editorState[editorStateKey]();
+        },
+        getConvertToRaw: (0, _Draft.convertToRaw)(_this.state.editorState.getCurrentContent(), (0, _merge2.default)(_custom.COLORS, _custom.BACKGROUNDCOLORS, _custom.ALIGN, _custom.FONTSIZE, _custom.FONTFAMILY))
       });
     };
     //
     _this.onDoHandle = function (editorState, action) {
-      var newEditorState = undefined;
+      var newEditorState = void 0;
       switch (action) {
         case 'undo':
-          newEditorState = _draftJs.EditorState.undo(editorState);
+          newEditorState = _Draft.EditorState.undo(editorState);
           break;
         case 'redo':
-          newEditorState = _draftJs.EditorState.redo(editorState);
+          newEditorState = _Draft.EditorState.redo(editorState);
           break;
       }
       if (newEditorState) {
@@ -343,7 +332,7 @@ var DraftText = function (_Component) {
     //
     _this.logState = function () {
       var content = _this.state.editorState.getCurrentContent();
-      console.log((0, _draftJs.convertToRaw)(content));
+      console.log((0, _Draft.convertToRaw)(content));
     };
     _this.logClear = function () {
       console.clear();
@@ -352,6 +341,29 @@ var DraftText = function (_Component) {
   }
 
   _createClass(DraftText, [{
+    key: 'componentWillMount',
+    value: function componentWillMount() {
+      var decorator = new _Draft.CompositeDecorator([{
+        strategy: findLinkEntities,
+        component: Link
+      }]);
+      //Default state setting
+      var defaultEditorState = void 0;
+      //Set the default value
+      if (this.props.defaultValue) {
+        var defaultValue = this.props.defaultValue;
+
+        var contentState = _Draft2.default.ContentState.createFromBlockArray(_Draft2.default.convertFromRaw(this.props.defaultValue));
+        defaultEditorState = _Draft2.default.EditorState.createWithContent(contentState, decorator);
+      }
+      if (this.props.defaultValue === undefined && decorator !== undefined) {
+        defaultEditorState = _Draft2.default.EditorState.createWithContent(decorator);
+      }
+      this.setState({
+        editorState: defaultEditorState
+      });
+    }
+  }, {
     key: 'render',
     value: function render() {
       var _this2 = this;
@@ -367,68 +379,92 @@ var DraftText = function (_Component) {
           onClick: this.logClear
         })
       ) : null;
-      this.checkRootStyle = function () {
-        return _this2.props.editorStyle !== undefined && _this2.props.editorStyle.root !== undefined;
-      };
-      this.checkRootControlStyle = function () {
-        return _this2.props.editorStyle !== undefined && _this2.props.editorStyle['root-control'] !== undefined;
-      };
-      this.checkRootInputStyle = function () {
-        return _this2.props.editorStyle !== undefined && _this2.props.editorStyle['root-input'] !== undefined;
-      };
+
+      if (this.props.editorStyle !== undefined) {
+        this.checkRootStyle = function () {
+          return _this2.props.editorStyle !== undefined && _this2.props.editorStyle.root !== undefined;
+        };
+        this.checkRootControlStyle = function () {
+          return _this2.props.editorStyle !== undefined && _this2.props.editorStyle['root-control'] !== undefined;
+        };
+        this.checkRootInputStyle = function () {
+          return _this2.props.editorStyle !== undefined && _this2.props.editorStyle['root-input'] !== undefined;
+        };
+      }
+
       var rootStyle = this.checkRootStyle ? this.props.editorStyle.root : {};
       var rootControlStyle = this.checkRootControlStyle ? this.props.editorStyle['root-control'] : {};
       var rootInputStyle = this.checkRootInputStyle ? this.props.editorStyle['root-input'] : {};
+      var render = [];
+
+      // this.ControlsComponentsRender = () => {
+      //   for(let c in DefaultControlComponents) {
+      //     let ControlsComponent = DefaultControlComponents[c];
+      //     render.push(
+      //       <ControlsComponent
+      //         key={c}
+      //         editorState={editorState}
+      //         customStyle={rootControlStyle}
+      //       />
+      //     )
+      //   }
+      // }
+      // this.ControlsComponentsRender();
+      var controlsComponentEditor = this.props.readOnly ? null : _react2.default.createElement(
+        'div',
+        null,
+        _react2.default.createElement(FontFamilyControls, {
+          editorState: editorState,
+          onToggle: this.toggleFontFamily,
+          customStyle: rootControlStyle
+        }),
+        _react2.default.createElement(FontSizeControls, {
+          editorState: editorState,
+          onToggle: this.toggleFontSize,
+          customStyle: rootControlStyle
+        }),
+        _react2.default.createElement(TextControls, {
+          editorState: editorState,
+          onToggle: this.toggleInlineStyle
+        }),
+        _react2.default.createElement(LinkControls, {
+          onHandlLink: this._onHandlLink
+        }),
+        _react2.default.createElement(BlockControls, {
+          editorState: editorState,
+          onToggle: this.toggleBlockType
+        }),
+        _react2.default.createElement(ColorControls, {
+          editorState: editorState,
+          onToggle: this.toggleColor
+        }),
+        _react2.default.createElement(BackgroundControls, {
+          editorState: editorState,
+          onToggle: this.toggleBackgroundColor
+        }),
+        _react2.default.createElement(ContentControls, {
+          editorState: editorState,
+          onDoHandle: this.onDoHandle
+        }),
+        StateLog
+      );
+
       return _react2.default.createElement(
         'div',
         { style: (0, _merge2.default)(_draftText2.default.root, rootStyle) },
+        controlsComponentEditor,
         _react2.default.createElement(
           'div',
-          null,
-          _react2.default.createElement(FontFamilyControls, {
-            editorState: editorState,
-            onToggle: this.toggleFontFamily,
-            customStyle: rootControlStyle
-          }),
-          _react2.default.createElement(FontSizeControls, {
-            editorState: editorState,
-            onToggle: this.toggleFontSize,
-            customStyle: rootControlStyle
-          }),
-          _react2.default.createElement(TextControls, {
-            editorState: editorState,
-            onToggle: this.toggleInlineStyle
-          }),
-          _react2.default.createElement(LinkControls, {
-            onHandlLink: this._onHandlLink
-          }),
-          _react2.default.createElement(BlockControls, {
-            editorState: editorState,
-            onToggle: this.toggleBlockType
-          }),
-          _react2.default.createElement(ColorControls, {
-            editorState: editorState,
-            onToggle: this.toggleColor
-          }),
-          _react2.default.createElement(BackgroundControls, {
-            editorState: editorState,
-            onToggle: this.toggleBackgroundColor
-          }),
-          _react2.default.createElement(ContentControls, {
-            editorState: editorState,
-            onDoHandle: this.onDoHandle
-          }),
-          StateLog
-        ),
-        _react2.default.createElement(
-          'div',
-          { style: (0, _merge2.default)(_draftText2.default.editor, rootInputStyle), onClick: function onClick() {
+          {
+            style: (0, _merge2.default)(_draftText2.default.editor, rootInputStyle),
+            onClick: function onClick() {
               _this2.focus(editorState);
-            } },
-          _react2.default.createElement(_draftJs.Editor, {
+            }
+          },
+          _react2.default.createElement(_Draft.Editor, {
             customStyleMap: (0, _merge2.default)(_custom.COLORS, _custom.BACKGROUNDCOLORS, _custom.ALIGN, _custom.FONTSIZE, _custom.FONTFAMILY),
             editorState: editorState,
-            readOnly: false,
+            readOnly: this.props.readOnly,
             onChange: this.onChange,
             placeholder: this.state.placeholder,
             blockStyleFn: getBlockStyle,
@@ -447,7 +483,7 @@ exports.default = DraftText;
 ;
 
 var Link = function Link(props) {
-  var _Entity$get$getData = _draftJs.Entity.get(props.entityKey).getData();
+  var _Entity$get$getData = _Draft.Entity.get(props.entityKey).getData();
 
   var href = _Entity$get$getData.href;
 
@@ -509,7 +545,7 @@ var FontFamilyControls = function (_Component2) {
       return _react2.default.createElement(
         'div',
         {
-          style: _draftText2.default.meepEditorInline
+          style: (0, _merge2.default)(_draftText2.default.meepEditorInline, _draftText2.default.meepEditorInlineFontFamily)
         },
         _react2.default.createElement(
           'div',
@@ -834,8 +870,9 @@ var ColorControls = function (_Component6) {
       var editorState = this.props.editorState;
 
       var currentStyle = editorState.getCurrentInlineStyle();
-      var button = this.state.isOpen ? _inline.COLORSTYLE.map(function (type) {
+      var button = this.state.isOpen ? _inline.COLORSTYLE.map(function (type, idx) {
         return _react2.default.createElement(ColorButton, {
+          key: 'color_button_' + idx,
           active: currentStyle.has(type.style),
           label: type.label,
           style: type.style,
@@ -897,8 +934,9 @@ var BackgroundControls = function (_Component7) {
       var editorState = this.props.editorState;
 
       var currentStyle = editorState.getCurrentInlineStyle();
-      var button = this.state.isOpen ? _inline.BACKGROUNDCOLORSTYLE.map(function (type) {
+      var button = this.state.isOpen ? _inline.BACKGROUNDCOLORSTYLE.map(function (type, idx) {
         return _react2.default.createElement(BackgroundButton, {
+          key: 'background_button_' + idx,
           active: currentStyle.has(type.style),
           label: type.label,
           style: type.style,
@@ -1001,8 +1039,8 @@ var StyleButton = function (_Component9) {
   _createClass(StyleButton, [{
     key: 'render',
     value: function render() {
-      var style = undefined;
-      var labelColor = undefined;
+      var style = void 0;
+      var labelColor = void 0;
       if (this.props.active) {
         style = _draftText2.default.meepEditorActiveButton;
         labelColor = '#437A82';
@@ -1044,8 +1082,8 @@ var ColorButton = function (_Component10) {
   _createClass(ColorButton, [{
     key: 'render',
     value: function render() {
-      var style = undefined;
-      var labelColor = undefined;
+      var style = void 0;
+      var labelColor = void 0;
       if (this.props.active) {
         style = _draftText2.default.meepEditorActiveColorButton;
       } else {
@@ -1080,8 +1118,8 @@ var BackgroundButton = function (_Component11) {
   _createClass(BackgroundButton, [{
     key: 'render',
     value: function render() {
-      var style = undefined;
-      var labelColor = undefined;
+      var style = void 0;
+      var labelColor = void 0;
       if (this.props.active) {
         style = _draftText2.default.meepEditorActiveColorButton;
       } else {
@@ -1097,7 +1135,8 @@ var BackgroundButton = function (_Component11) {
   return BackgroundButton;
 }(_react.Component);
 
-/*暫時解決 React DOM editor 時會出現警告錯誤，等待 React 15.0 版修正。
+/**
+  暫時解決 React DOM editor 時會出現警告錯誤，等待 React 15.0 版修正。
   issue: https://github.com/facebook/react/issues/5837
  */
 
@@ -1111,76 +1150,3 @@ console.error = function () {
     }
   };
 }();
-
-function _inspect(input, depth) {
-  var maxDepth = 4;
-  var maxKeys = 15;
-
-  if (depth === undefined) {
-    depth = 0;
-  }
-
-  depth += 1;
-
-  if (input === null) {
-    return 'null';
-  } else if (input === undefined) {
-    return 'void';
-  } else if (typeof input === 'string' || typeof input === 'number' || typeof input === 'boolean') {
-    return typeof input === 'undefined' ? 'undefined' : _typeof(input);
-  } else if (Array.isArray(input)) {
-    if (input.length > 0) {
-      var _ret = function () {
-        if (depth > maxDepth) return {
-            v: '[...]'
-          };
-
-        var first = _inspect(input[0], depth);
-
-        if (input.every(function (item) {
-          return _inspect(item, depth) === first;
-        })) {
-          return {
-            v: first.trim() + '[]'
-          };
-        } else {
-          return {
-            v: '[' + input.slice(0, maxKeys).map(function (item) {
-              return _inspect(item, depth);
-            }).join(', ') + (input.length >= maxKeys ? ', ...' : '') + ']'
-          };
-        }
-      }();
-
-      if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
-    } else {
-      return 'Array';
-    }
-  } else {
-    var keys = Object.keys(input);
-
-    if (!keys.length) {
-      if (input.constructor && input.constructor.name && input.constructor.name !== 'Object') {
-        return input.constructor.name;
-      } else {
-        return 'Object';
-      }
-    }
-
-    if (depth > maxDepth) return '{...}';
-    var indent = '  '.repeat(depth - 1);
-    var entries = keys.slice(0, maxKeys).map(function (key) {
-      return (/^([A-Z_$][A-Z0-9_$]*)$/i.test(key) ? key : JSON.stringify(key)) + ': ' + _inspect(input[key], depth) + ';';
-    }).join('\n  ' + indent);
-
-    if (keys.length >= maxKeys) {
-      entries += '\n  ' + indent + '...';
-    }
-
-    if (input.constructor && input.constructor.name && input.constructor.name !== 'Object') {
-      return input.constructor.name + ' {\n  ' + indent + entries + '\n' + indent + '}';
-    } else {
-      return '{\n  ' + indent + entries + '\n' + indent + '}';
-    }
-  }
-}

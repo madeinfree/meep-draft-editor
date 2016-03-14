@@ -28,20 +28,8 @@ exports.default = new _styles2.default({
     border: '1px solid #59bcc9',
     cursor: 'text',
     fontSize: '16px',
-
-    "public-DraftEditorPlaceholder-root": {
-      padding: '15px'
-    },
-    "public-DraftEditor-content": {
-      padding: '15px'
-    }
-  }, _defineProperty(_editor, 'public-DraftEditor-content', {
-    minHeight: '100px'
-  }), _defineProperty(_editor, "public-DraftStyleDefault-pre", {
-    fontFamily: "'Inconsolata', 'Menlo', 'Consolas', monospace",
-    fontSize: '16px',
-    padding: '20px'
-  }), _editor),
+    fontFamily: "'Inconsolata', 'Menlo', 'Consolas', monospace"
+  }, _defineProperty(_editor, 'fontSize', '16px'), _defineProperty(_editor, 'padding', '20px'), _editor),
   controls: {
     fontFamily: '\'Helvetica\', sans-serif',
     fontSize: 14,
@@ -55,6 +43,10 @@ exports.default = new _styles2.default({
   meepEditorInline: {
     display: 'inline-block',
     userSelectNone: _userSelectNone2.default
+  },
+  meepEditorInlineFontFamily: {
+    width: '130px',
+    textAlign: 'center'
   },
   meepEditorDefaultColor: {
     color: '#59bcc9'
@@ -121,7 +113,9 @@ exports.default = new _styles2.default({
     borderColor: '#ccc',
     boxShadow: 'rgba(0,0,0,.2) 0 2px 8px',
     marginTop: '-1px',
-    zIndex: 1
+    zIndex: 1,
+    height: '130px',
+    overflowY: 'auto'
   },
   meepEditorSelectBoxLabel: {
     paddingRight: '8px',

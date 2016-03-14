@@ -15,7 +15,7 @@ import Draft, {
   Entity,
   CompositeDecorator,
   ContentState,
-  SelectionState } from '../draft-js@fix/lib/Draft';
+  SelectionState } from './lib/draft-js@fix/lib/Draft';
 
 //type-core
 import BLOCK_TYPES from './draft-type-core/block'
