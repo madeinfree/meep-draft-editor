@@ -1,15 +1,17 @@
 import React, { PropTypes, Component } from 'react';
 import ReactDOM from 'react-dom';
-// import Component from 'meepworks/component';
-// import merge from 'meepworks/merge';
+// components load
+import * as DefaultControlComponents from './components/index.react';
+//
 import merge from './lib/merge.js'
 import styles from './draft-text.style'
-import {
+import Draft, {
   Editor,
   EditorState,
   Modifier,
   RichUtils,
   convertToRaw,
+  convertFromRaw,
   Entity,
   CompositeDecorator,
   ContentState,
@@ -70,8 +72,8 @@ const DraftTextHandlers = {
 }
 
 export default class DraftText extends Component {
-  constructor(...args) {
-    super(...args);
+  constructor(props) {
+    super(props);
     //
     const decorator = new CompositeDecorator([
       {
@@ -93,29 +95,31 @@ export default class DraftText extends Component {
     this.state = {
       editorState: EditorState.createEmpty(decorator),
       editMode: 0,
-      placeholder: this.hasPlaceholder()
+      placeholder: this.hasPlaceholder(),
     };
     //
     this.focus = (editorState) => {
-      this.refs.editor.focus();
+      if(editorState.getSelection().getHasFocus()) {
+        this.refs.editor.focus();
+      }
     }
     //
     this.onChange = (editorState) => {
       this.setState({editorState});
-
-      this.stateCache(this.props.onEditorChange, editorState)
+      this.stateCache(this.props.onEditorChange)
       // console.log(editorState.getCurrentContent()
       //                        .getBlockForKey(editorState.getSelection().getStartKey())
       //                        .getText())
     }
-    this.stateCache = (EditorChange :Function, editorState :Object) => {
+    this.stateCache = (EditorChange) => {
       EditorChange({
-        getEditorState: editorState,
-        getCurrentContent: editorState.getCurrentContent(),
-        getStateText: editorState.getCurrentContent().getBlockForKey(editorState.getSelection().getStartKey()).getText(),
-        getCustomState: (editorStateKey :string) => {
-          return editorState[editorStateKey]();
-        }
+        getEditorState: this.state.editorState,
+        getCurrentContent: this.state.editorState.getCurrentContent(),
+        getStateText: this.state.editorState.getCurrentContent().getBlockForKey(this.state.editorState.getSelection().getStartKey()).getText(),
+        getCustomState: (editorStateKey) => {
+          return this.state.editorState[editorStateKey]();
+        },
+        getResult: convertToRaw(this.state.editorState.getCurrentContent())
       })
     }
     //
@@ -356,11 +360,25 @@ export default class DraftText extends Component {
     }
     this.onChange(nextEditorState)
     this.onChange(
-      RichUtils.toggleBlockType(
+      RichUtils.toggleBlockType (
         this.state.editorState,
         align
       )
     );
+  }
+
+  componentWillMount() {
+    //Set the default value
+    if(this.props.defaultValue) {
+      let {
+        defaultValue
+      } = this.props
+      // let contentState = Draft.ContentState.createFromBlockArray(Draft.convertFromRaw(this.props.defaultValue))
+      // let defaultEditorState = Draft.EditorState.createWithContent(contentState);
+      // this.setState({
+      //   editorState: defaultEditorState
+      // })
+    }
   }
 
   render() {
@@ -374,18 +392,38 @@ export default class DraftText extends Component {
         />
       </span>
     ) : (null)
-    this.checkRootStyle = () => {
-      return (this.props.editorStyle !== undefined) && (this.props.editorStyle.root !== undefined)
+
+    if(this.props.editorStyle !== undefined) {
+      this.checkRootStyle = () => {
+        return (this.props.editorStyle !== undefined) && (this.props.editorStyle.root !== undefined)
+      }
+      this.checkRootControlStyle = () => {
+        return (this.props.editorStyle !== undefined) && (this.props.editorStyle['root-control'] !== undefined)
+      }
+      this.checkRootInputStyle = () => {
+        return (this.props.editorStyle !== undefined) && (this.props.editorStyle['root-input'] !== undefined)
+      }
     }
-    this.checkRootControlStyle = () => {
-      return (this.props.editorStyle !== undefined) && (this.props.editorStyle['root-control'] !== undefined)
-    }
-    this.checkRootInputStyle = () => {
-      return (this.props.editorStyle !== undefined) && (this.props.editorStyle['root-input'] !== undefined)
-    }
+
     let rootStyle = this.checkRootStyle ? (this.props.editorStyle.root) : ({})
     let rootControlStyle = this.checkRootControlStyle ? (this.props.editorStyle['root-control']) : ({})
     let rootInputStyle = this.checkRootInputStyle ? (this.props.editorStyle['root-input']) : ({})
+    let render = [];
+
+    this.ControlsComponentsRender = () => {
+      for(let c in DefaultControlComponents) {
+        let ControlsComponent = DefaultControlComponents[c];
+        render.push(
+          <ControlsComponent
+            key={c}
+            editorState={editorState}
+            customStyle={rootControlStyle}
+          />
+        )
+      }
+    }
+    this.ControlsComponentsRender();
+
     return (
       <div style={merge(styles.root, rootStyle)}>
           <div>
@@ -424,10 +462,13 @@ export default class DraftText extends Component {
             />
             {StateLog}
           </div>
-        <div style={merge(styles.editor, rootInputStyle)} onClick={()=>{
+        <div
+          style={merge(styles.editor, rootInputStyle)}
+          onClick={()=>{
               this.focus(editorState)
             }
-          }>
+          }
+        >
           <Editor
             customStyleMap={merge(COLORS, BACKGROUNDCOLORS, ALIGN, FONTSIZE, FONTFAMILY)}
             editorState={editorState}
@@ -498,7 +539,10 @@ class FontFamilyControls extends Component {
     let customControlStyle = this.props.customStyle
     return (
       <div
-        style={styles.meepEditorInline}
+        style={merge(
+          styles.meepEditorInline,
+          styles.meepEditorInlineFontFamily
+        )}
       >
         <div
           style={merge(styles.meepEditorSelectMainBox,
@@ -777,9 +821,10 @@ class ColorControls extends Component {
       editorState
     } = this.props
     let currentStyle = editorState.getCurrentInlineStyle();
-    let button = this.state.isOpen ? (COLORSTYLE.map(type => {
+    let button = this.state.isOpen ? (COLORSTYLE.map((type, idx) => {
       return (
         <ColorButton
+          key={`color_button_${idx}`}
           active={currentStyle.has(type.style)}
           label={type.label}
           style={type.style}
@@ -825,9 +870,10 @@ class BackgroundControls extends Component {
       editorState
     } = this.props
     let currentStyle = editorState.getCurrentInlineStyle();
-    let button = this.state.isOpen ? (BACKGROUNDCOLORSTYLE.map(type => {
+    let button = this.state.isOpen ? (BACKGROUNDCOLORSTYLE.map((type, idx) => {
       return (
         <BackgroundButton
+          key={`background_button_${idx}`}
           active={currentStyle.has(type.style)}
           label={type.label}
           style={type.style}
@@ -977,7 +1023,7 @@ class BackgroundButton extends Component {
   }
 }
 
-/*
+/**
   暫時解決 React DOM editor 時會出現警告錯誤，等待 React 15.0 版修正。
   issue: https://github.com/facebook/react/issues/5837
  */

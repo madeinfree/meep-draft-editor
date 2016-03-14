@@ -10,21 +10,9 @@ export default new Styles({
     border: '1px solid #59bcc9',
     cursor: 'text',
     fontSize: '16px',
-
-    "public-DraftEditorPlaceholder-root": {
-      padding: '15px'
-    },
-    "public-DraftEditor-content": {
-      padding: '15px'
-    },
-    "public-DraftEditor-content": {
-      minHeight: '100px',
-    },
-    "public-DraftStyleDefault-pre": {
-      fontFamily: "'Inconsolata', 'Menlo', 'Consolas', monospace",
-      fontSize: '16px',
-      padding: '20px',
-    },
+    fontFamily: "'Inconsolata', 'Menlo', 'Consolas', monospace",
+    fontSize: '16px',
+    padding: '20px',
   },
   controls: {
     fontFamily: '\'Helvetica\', sans-serif',
@@ -39,6 +27,10 @@ export default new Styles({
   meepEditorInline: {
     display: 'inline-block',
     userSelectNone,
+  },
+  meepEditorInlineFontFamily: {
+    width: '130px',
+    textAlign: 'center'
   },
   meepEditorDefaultColor: {
     color: '#59bcc9',
@@ -106,6 +98,8 @@ export default new Styles({
     boxShadow: 'rgba(0,0,0,.2) 0 2px 8px',
     marginTop: '-1px',
     zIndex: 1,
+    height: '130px',
+    overflowY: 'auto'
   },
   meepEditorSelectBoxLabel: {
     paddingRight: '8px',

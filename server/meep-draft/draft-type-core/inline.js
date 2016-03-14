@@ -1,7 +1,7 @@
 export const FONTFAMILYSTYLE = [
-  {label: "FONTFAMILY", style: 'Arial'},
-  {label: "FONTFAMILY", style: 'Arial Black'},
-  {label: "FONTFAMILY", style: 'Comic Sans MS'},
+  {label: "FONTFAMILY-arial", style: 'Arial'},
+  {label: "FONTFAMILY-arial-black", style: 'Arial Black'},
+  {label: "FONTFAMILY-comic-sans-m-s", style: 'Comic Sans MS'},
   {label: "FONTFAMILY", style: 'Courier'},
   {label: "FONTFAMILY", style: 'Courier New'},
   {label: "FONTFAMILY", style: '標楷體'},
