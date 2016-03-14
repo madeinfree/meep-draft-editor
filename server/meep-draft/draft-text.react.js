@@ -382,7 +382,7 @@ export default class DraftText extends Component {
       defaultEditorState = Draft.EditorState.createWithContent(contentState, decorator);
     }
     if(this.props.defaultValue === undefined && decorator !== undefined) {
-      defaultEditorState = Draft.EditorState.createWithContent(decorator);
+      defaultEditorState = Draft.EditorState.createEmpty(decorator);
     }
     this.setState({
       editorState: defaultEditorState
