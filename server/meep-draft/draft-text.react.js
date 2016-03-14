@@ -15,7 +15,7 @@ import Draft, {
   Entity,
   CompositeDecorator,
   ContentState,
-  SelectionState } from 'draft-js';
+  SelectionState } from '../draft-js@fix/lib/Draft';
 
 //type-core
 import BLOCK_TYPES from './draft-type-core/block'
@@ -75,13 +75,6 @@ export default class DraftText extends Component {
   constructor(props) {
     super(props);
     //
-    const decorator = new CompositeDecorator([
-      {
-        strategy: findLinkEntities,
-        component: Link,
-      },
-    ]);
-    //
     for(let fn in DraftTextHandlers) {
       if(typeof DraftTextHandlers[fn] === "function") {
         this[fn] = this::DraftTextHandlers[fn];
@@ -93,7 +86,7 @@ export default class DraftText extends Component {
     }
     //
     this.state = {
-      editorState: EditorState.createEmpty(decorator),
+      editorState: undefined,
       editMode: 0,
       placeholder: this.hasPlaceholder(),
     };
@@ -119,7 +112,7 @@ export default class DraftText extends Component {
         getCustomState: (editorStateKey) => {
           return this.state.editorState[editorStateKey]();
         },
-        getResult: convertToRaw(this.state.editorState.getCurrentContent())
+        getConvertToRaw: convertToRaw(this.state.editorState.getCurrentContent(), merge(COLORS, BACKGROUNDCOLORS, ALIGN, FONTSIZE, FONTFAMILY))
       })
     }
     //
@@ -241,6 +234,7 @@ export default class DraftText extends Component {
     )
     const currentStyle = editorState.getCurrentInlineStyle();
     if(selection.isCollapsed()) {
+      console.log('gggg1');
       nextEditorState = currentStyle.reduce((state, size) => {
         return RichUtils.toggleInlineStyle(state, size);
       }, nextEditorState);
@@ -255,9 +249,12 @@ export default class DraftText extends Component {
   }
 
   _toggleInlineStyle = (inlineStyle) => {
+    const {
+      editorState
+    } = this.state
     this.onChange(
       RichUtils.toggleInlineStyle(
-        this.state.editorState,
+        editorState,
         inlineStyle
       )
     );
@@ -368,17 +365,28 @@ export default class DraftText extends Component {
   }
 
   componentWillMount() {
+    const decorator = new CompositeDecorator([
+      {
+        strategy: findLinkEntities,
+        component: Link,
+      },
+    ]);
+    //Default state setting
+    let defaultEditorState;
     //Set the default value
     if(this.props.defaultValue) {
       let {
         defaultValue
       } = this.props
-      // let contentState = Draft.ContentState.createFromBlockArray(Draft.convertFromRaw(this.props.defaultValue))
-      // let defaultEditorState = Draft.EditorState.createWithContent(contentState);
-      // this.setState({
-      //   editorState: defaultEditorState
-      // })
+      let contentState = Draft.ContentState.createFromBlockArray(Draft.convertFromRaw(this.props.defaultValue))
+      defaultEditorState = Draft.EditorState.createWithContent(contentState, decorator);
     }
+    if(this.props.defaultValue === undefined && decorator !== undefined) {
+      defaultEditorState = Draft.EditorState.createWithContent(decorator);
+    }
+    this.setState({
+      editorState: defaultEditorState
+    })
   }
 
   render() {
@@ -410,58 +418,61 @@ export default class DraftText extends Component {
     let rootInputStyle = this.checkRootInputStyle ? (this.props.editorStyle['root-input']) : ({})
     let render = [];
 
-    this.ControlsComponentsRender = () => {
-      for(let c in DefaultControlComponents) {
-        let ControlsComponent = DefaultControlComponents[c];
-        render.push(
-          <ControlsComponent
-            key={c}
-            editorState={editorState}
-            customStyle={rootControlStyle}
-          />
-        )
-      }
-    }
-    this.ControlsComponentsRender();
+    // this.ControlsComponentsRender = () => {
+    //   for(let c in DefaultControlComponents) {
+    //     let ControlsComponent = DefaultControlComponents[c];
+    //     render.push(
+    //       <ControlsComponent
+    //         key={c}
+    //         editorState={editorState}
+    //         customStyle={rootControlStyle}
+    //       />
+    //     )
+    //   }
+    // }
+    // this.ControlsComponentsRender();
+    let controlsComponentEditor = this.props.readOnly ? null : (
+      <div>
+        <FontFamilyControls
+          editorState={editorState}
+          onToggle={this.toggleFontFamily}
+          customStyle={rootControlStyle}
+        />
+        <FontSizeControls
+          editorState={editorState}
+          onToggle={this.toggleFontSize}
+          customStyle={rootControlStyle}
+        />
+        <TextControls
+          editorState={editorState}
+          onToggle={this.toggleInlineStyle}
+        />
+        <LinkControls
+          onHandlLink={this._onHandlLink}
+        />
+        <BlockControls
+          editorState={editorState}
+          onToggle={this.toggleBlockType}
+        />
+        <ColorControls
+          editorState={editorState}
+          onToggle={this.toggleColor}
+        />
+        <BackgroundControls
+          editorState={editorState}
+          onToggle={this.toggleBackgroundColor}
+        />
+        <ContentControls
+          editorState={editorState}
+          onDoHandle={this.onDoHandle}
+        />
+        {StateLog}
+      </div>
+    )
 
     return (
       <div style={merge(styles.root, rootStyle)}>
-          <div>
-            <FontFamilyControls
-              editorState={editorState}
-              onToggle={this.toggleFontFamily}
-              customStyle={rootControlStyle}
-            />
-            <FontSizeControls
-              editorState={editorState}
-              onToggle={this.toggleFontSize}
-              customStyle={rootControlStyle}
-            />
-            <TextControls
-              editorState={editorState}
-              onToggle={this.toggleInlineStyle}
-            />
-            <LinkControls
-              onHandlLink={this._onHandlLink}
-            />
-            <BlockControls
-              editorState={editorState}
-              onToggle={this.toggleBlockType}
-            />
-            <ColorControls
-              editorState={editorState}
-              onToggle={this.toggleColor}
-            />
-            <BackgroundControls
-              editorState={editorState}
-              onToggle={this.toggleBackgroundColor}
-            />
-            <ContentControls
-              editorState={editorState}
-              onDoHandle={this.onDoHandle}
-            />
-            {StateLog}
-          </div>
+        { controlsComponentEditor }
         <div
           style={merge(styles.editor, rootInputStyle)}
           onClick={()=>{
@@ -472,7 +483,7 @@ export default class DraftText extends Component {
           <Editor
             customStyleMap={merge(COLORS, BACKGROUNDCOLORS, ALIGN, FONTSIZE, FONTFAMILY)}
             editorState={editorState}
-            readOnly={false}
+            readOnly={this.props.readOnly}
             onChange={this.onChange}
             placeholder={this.state.placeholder}
             blockStyleFn={getBlockStyle}

@@ -65,6 +65,18 @@ const editorStyle = {
 }
 ```
 
+# Props API
+#### defaultValue
+#### placeholder
+#### editorStyle
+
+# EVENT
+#### onEditorChange(state)
+- state.getEditorState
+- state.getCurrentContent
+- state.CustomState
+- state.getConvertToRaw
+
 # dependencies
 ```javascript
 import React from 'react';
@@ -80,6 +92,22 @@ ReactDom.render(
   <MeepDraftEditor />,
   document.getElementById('app')
 );
+```
+## 設定預設內容 (default-value)
+```javascript
+//defaultValue 必須要是 Draft ConvertToRaw JSON 物件
+const defaultValue = {"entityMap":{},"blocks":[{"key":"demmk","text":"Hello, Default Value !","type":"align-left","depth":0,"inlineStyleRanges":[],"entityRanges":[]}]}
+<MeepDraftEditor
+  defaultValue={defaultValue}
+/>
+```
+## 取得 storage 物件
+```javascript
+<MeepDraftEditor
+  onEditorChange={(state) => {
+    console.log(state.getConvertToRaw)
+  }}
+/>,
 ```
 ## 取得基本訊息事件方法
 ```javascript
@@ -220,11 +248,33 @@ ReactDom.render(
 
   - [x] 去除多餘元件(ButtomSelect)
 
+<2016 - 03 - 05>
+
+- 重構拆除元件
+
+    - [ ] 將元件拆除
+
+        - [ ] 讓使用者可以自訂需要使用的元件
+
+<2016 - 03 - 07>
+
+- [x] 修正元件 editor input 點選時重複 focus 閃爍問題
+
+<2016 - 03 - 09>
+
+- [x] 修正未加入輸入自訂樣式表會錯誤問題
+
+<2016 - 03 - 014>
+
+- 增加
+
+    - [x] 修正 convertToRaw 無法取得正確自訂樣式資訊
+
+    - [x] 新增 getConvertToRaw 取得元件 storage 物件
+
+    - [x] 使用者可設定預設文字
 
 # TODO
-- [ ] 使用者能取得 Editor 元件的相關資訊
-
-    - [ ] 使用者能取得預設給予的 EditorState 物件資訊
 
 - [ ] 使用者能決定元件樣式
 
