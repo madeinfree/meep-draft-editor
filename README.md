@@ -274,6 +274,16 @@ ReactDom.render(
 
     - [x] 使用者可設定預設文字
 
+<2016 - 03 - 15>
+
+- 修正
+
+    - [x] assign {…this.props}
+
+    - [x] event 事件 onChange 改為 onBlur
+
+    - [x] 修正沒有 onEditorChange,defaultValue 傳入錯誤資訊
+
 # TODO
 
 - [ ] 使用者能決定元件樣式
