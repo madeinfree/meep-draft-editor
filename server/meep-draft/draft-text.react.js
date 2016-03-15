@@ -99,11 +99,14 @@ export default class DraftText extends Component {
     //
     this.onChange = (editorState) => {
       this.setState({editorState});
-      this.stateCache(this.props.onEditorChange)
-      // console.log(editorState.getCurrentContent()
-      //                        .getBlockForKey(editorState.getSelection().getStartKey())
-      //                        .getText())
     }
+    //
+    this.onBlur = (editorState) => {
+      if(this.props.onEditorChange) {
+        this.stateCache(this.props.onEditorChange)
+      }
+    }
+    //
     this.stateCache = (EditorChange) => {
       EditorChange({
         getEditorState: this.state.editorState,
@@ -373,15 +376,19 @@ export default class DraftText extends Component {
     ]);
     //Default state setting
     let defaultEditorState;
-    //Set the default value
-    if(this.props.defaultValue) {
-      let {
-        defaultValue
-      } = this.props
+    let {
+      defaultValue
+    } = this.props
+    if(defaultValue) {
+      //Set the default value
+      //if the defaultValue is null or ' '
+      if( (typeof defaultValue === 'string') && (defaultValue == null || defaultValue.trim() === '')  ) {
+        return
+      }
       let contentState = Draft.ContentState.createFromBlockArray(Draft.convertFromRaw(this.props.defaultValue))
       defaultEditorState = Draft.EditorState.createWithContent(contentState, decorator);
     }
-    if(this.props.defaultValue === undefined && decorator !== undefined) {
+    if(  (typeof this.props.defaultValue === 'string') || (this.props.defaultValue === undefined && decorator !== undefined)  ) {
       defaultEditorState = Draft.EditorState.createEmpty(decorator);
     }
     this.setState({
@@ -481,10 +488,12 @@ export default class DraftText extends Component {
           }
         >
           <Editor
+            {...this.props}
             customStyleMap={merge(COLORS, BACKGROUNDCOLORS, ALIGN, FONTSIZE, FONTFAMILY)}
             editorState={editorState}
             readOnly={this.props.readOnly}
             onChange={this.onChange}
+            onBlur={this.onBlur}
             placeholder={this.state.placeholder}
             blockStyleFn={getBlockStyle}
             ref="editor"
