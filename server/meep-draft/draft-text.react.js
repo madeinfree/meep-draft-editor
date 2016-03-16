@@ -15,7 +15,8 @@ import Draft, {
   Entity,
   CompositeDecorator,
   ContentState,
-  SelectionState } from './lib/draft-js@fix/lib/Draft';
+  SelectionState,
+  CharacterMetadata } from './lib/draft-js@fix/lib/Draft';
 
 //type-core
 import BLOCK_TYPES from './draft-type-core/block'
@@ -86,7 +87,7 @@ export default class DraftText extends Component {
     }
     //
     this.state = {
-      editorState: undefined,
+      editorState: EditorState.createEmpty(),
       editMode: 0,
       placeholder: this.hasPlaceholder(),
     };
@@ -101,7 +102,7 @@ export default class DraftText extends Component {
       this.setState({editorState});
     }
     //
-    this.onBlur = (editorState) => {
+    this.onBlur = (e, editorState) => {
       if(this.props.onEditorChange) {
         this.stateCache(this.props.onEditorChange)
       }
@@ -221,7 +222,7 @@ export default class DraftText extends Component {
   }
 
   _toggleFontSize = (size) => {
-    const {
+    let {
       editorState
     } = this.state
     const selection = editorState.getSelection();
@@ -237,7 +238,6 @@ export default class DraftText extends Component {
     )
     const currentStyle = editorState.getCurrentInlineStyle();
     if(selection.isCollapsed()) {
-      console.log('gggg1');
       nextEditorState = currentStyle.reduce((state, size) => {
         return RichUtils.toggleInlineStyle(state, size);
       }, nextEditorState);
@@ -493,11 +493,14 @@ export default class DraftText extends Component {
             editorState={editorState}
             readOnly={this.props.readOnly}
             onChange={this.onChange}
-            onBlur={this.onBlur}
+            onBlur={(e) => {
+              this.onBlur(e, editorState)
+            }}
             placeholder={this.state.placeholder}
             blockStyleFn={getBlockStyle}
             ref="editor"
             suppressContentEditableWarning={false}
+            spellCheck={false}
           />
         </div>
       </div>

@@ -10,11 +10,11 @@ const editorStyle = {
     width: '670px'
   },
   "root-control": {
+    position: 'relative'
   },
   "root-input": {
     minHeight: '150px',
-    border: '3px solid #ccc',
-    width: '620px'
+    width: '620px',
   }
 }
 
@@ -23,10 +23,9 @@ ReactDom.render(
   <MeepDraftEditor
     onEditorChange={(state) => {
       // console.log(JSON.stringify(state.getResult))
-      console.log(JSON.stringify(state.getConvertToRaw))
+      console.log(state.getEditorState.toJS())
     }}
     placeholder="現在可以自訂輸入提示內容,編輯器樣式,控制項目樣式"
-    defaultValue={defaultValue}
     editorStyle={editorStyle}
     readOnly={false}
   />,
