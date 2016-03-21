@@ -16,7 +16,7 @@ import Draft, {
   CompositeDecorator,
   ContentState,
   SelectionState,
-  CharacterMetadata } from './lib/draft-js@fix/lib/Draft';
+  CharacterMetadata } from 'draft-js';
 
 //type-core
 import BLOCK_TYPES from './draft-type-core/block'
@@ -116,7 +116,7 @@ export default class DraftText extends Component {
         getCustomState: (editorStateKey) => {
           return this.state.editorState[editorStateKey]();
         },
-        getConvertToRaw: convertToRaw(this.state.editorState.getCurrentContent(), merge(COLORS, BACKGROUNDCOLORS, ALIGN, FONTSIZE, FONTFAMILY))
+        getConvertToRaw: convertToRaw(this.state.editorState.getCurrentContent())
       })
     }
     //
