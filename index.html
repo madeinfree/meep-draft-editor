@@ -2,11 +2,57 @@
 <html>
   <head>
     <meta charset="utf-8">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
     <title></title>
+    <style media="screen">
+      html {
+        position: relative;
+        min-height: 100%;
+      }
+      body {
+        /* Margin bottom by footer height */
+      }
+      .footer {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        /* Set the fixed height of the footer here */
+        height: 60px;
+        background-color: #f5f5f5;
+      }
+
+      .footer > .container {
+        padding-right: 15px;
+        padding-left: 15px;
+      }
+      .container .text-muted {
+        margin: 20px 0;
+      }
+      .app {
+        display: flex;
+        justify-content: center;
+      }
+    </style>
   </head>
   <body>
-
-  <div id="app"></div>  
+  <div class="container">
+    <div class="jumbotron">
+      <h1 class="display-3 text-center">React draft.js - Meep Draft Editor</h1>
+      <p class="lead text-center">此專案由 draft.js Facebook 開源專案發展而成，命名為 Meep Draft Editor 是一款對開發者自由度很高的一個文字編輯器開源專案，此為專案的 demo example 頁面，目前專案正在
+      發展中，如有任何問題請至專案觀看<a href="https://github.com/madeinfree/meep-draft-editor"> Github README document</a> 或發 pull request 給此專案幫助成長，也正在徵求共同貢獻者中。</p>
+      <h4 class="text-center">Github: <a href="https://github.com/madeinfree">link</a> version: 1.2.2</h4>
+      <h4 class="text-center">npm: <a href="https://www.npmjs.com/package/meep-draft-editor">link </a> version: 1.2.1</h4>
+      <hr class="m-y-2">
+      <div class="app">
+        <div id="app"></div>
+      </div>
+    </div>
+  </div>
+  <footer class="footer">
+      <div class="container">
+        <p class="text-muted text-center">Published by <a href="https://www.facebook.com/haowei.liou">Whien_Liou</a> under a permissive MIT License.</p>
+      </div>
+    </footer>
   <script src="./build/bundle.js"></script>
   </body>
 </html>
