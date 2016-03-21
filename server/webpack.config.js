@@ -1,9 +1,10 @@
 var path = require("path");
 module.exports = {
-  entry: ["./index.js"],
+  entry: ["./server/index.js"],
   output: {
     path: path.resolve(__dirname, "examples/gh-pages/build"),
-    filename: "bundle.js"
+    filename: "bundle.js",
+    publicPath: 'build/'
   },
   watch: true,
   devtool: 'source-map',
