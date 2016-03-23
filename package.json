@@ -17,7 +17,7 @@
   },
   "homepage": "https://github.com/madeinfree/meep-draft-editor#readme",
   "dependencies": {
-    "draft-js": "^0.2.2",
+    "draft-js": "^0.3.0",
     "font-awesome": "^4.5.0",
     "react": "^0.14.7",
     "react-dom": "^0.14.7"
