@@ -1,6 +1,5 @@
 # Meep-Draft 文字編輯器模組
 [![npm](https://img.shields.io/npm/v/meep-draft-editor.svg)](https://www.npmjs.com/package/meep-draft-editor)
-[![build](https://img.shields.io/travis/madeinfree/meep-draft-editor.svg)](https://github.com/madeinfree/meep-draft-editor)
 ##### Github: https://github.com/madeinfree/meep-draft-editor
 ##### Npm: https://www.npmjs.com/package/meep-draft-editor
 
