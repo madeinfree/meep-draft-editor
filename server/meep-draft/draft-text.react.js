@@ -396,6 +396,10 @@ export default class DraftText extends Component {
     })
   }
 
+  isReadOnly() {
+    return (this.props.readOnly === true) ? true : false;
+  }
+
   render() {
     const {editorState} = this.state;
     let StateLog = this.state.editMode ? (
@@ -496,7 +500,7 @@ export default class DraftText extends Component {
             onBlur={(e) => {
               this.onBlur(e, editorState)
             }}
-            placeholder={this.state.placeholder}
+            placeholder={this.isReadOnly() ? null : this.state.placeholder}
             blockStyleFn={getBlockStyle}
             ref="editor"
             suppressContentEditableWarning={false}
