@@ -4,7 +4,8 @@
   "description": "draft editor for meepshop work",
   "main": "./meep-draft-release/draft-text.react.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "webpack-dev-server --config server/webpack.config.js --content-base server/examples/gh-pages/"
   },
   "repository": {
     "type": "git",
