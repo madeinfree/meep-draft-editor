@@ -1,4 +1,4 @@
-# Meep-Draft 文字編輯器模組
+# Meep-Draft-Editor draft.js rich text basic editor
 [![npm](https://img.shields.io/npm/v/meep-draft-editor.svg)](https://www.npmjs.com/package/meep-draft-editor)
 ##### Github: https://github.com/madeinfree/meep-draft-editor
 ##### Npm: https://www.npmjs.com/package/meep-draft-editor
@@ -283,29 +283,29 @@ ReactDom.render(
 
     - [x] 修正沒有 onEditorChange,defaultValue 傳入錯誤資訊
 
-# TODO
+  <2016 - 03 - 21>
 
-- [ ] 使用者能決定元件樣式
+    - [x] remove the draft-js@fix what was used to improvement `InlineBlockStyle` bug
 
-    - [ ] 使用者能取得元件預設樣式
+    - [x] fixed some little but
 
-    - [ ] 使用者能傳入元件自訂樣式
+  <2016 - 03 - 22>
 
-- [ ] 使用者能自訂編輯器內文字樣式表
+    - [x] add the example page
 
-    - [ ] 使用者能取得預設文字樣式表
+    - [x] fixed the static font 404 error
 
-    - [ ] 使用者能自訂文字樣式表
+  <2016 - 03 - 23>
 
-        - [ ] 使用者能自訂 inline 樣式表
+    - [x] upgrade the draft-js to 0.3.0 version release
 
-        - [ ] 使用者能自訂 block 樣式表
+  <2016 - 03 - 27>
 
-- [ ] 使用者可選擇控制元件
+    - [x] fixed the readOnly placeholder bug
 
-    - [ ] 使用者能使用預設元件並選擇
+  <2016 - 03 - 28>
 
-    - [ ] 使用者可傳入自訂元件並選擇
+    - [x] version 1.2.3  release
 
 # ISSUE
 
