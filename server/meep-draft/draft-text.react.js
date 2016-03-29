@@ -12,6 +12,8 @@ import {
   ContentControls
 } from './defaultControls/index.react';
 //
+import DefaultControls from './defaultSettings/default-controls'
+//
 import merge from './lib/merge.js'
 import styles from './draft-text.style'
 import Draft, {
@@ -60,6 +62,15 @@ const findLinkEntities = (contentBlock, callback) => {
   );
 }
 
+const Link = (props) => {
+  const {href} = Entity.get(props.entityKey).getData();
+  return (
+    <a href={href} style={styles.meepEditorLink}>
+      {props.children}
+    </a>
+  );
+};
+
 const DraftTextHandlers = {
   hasPlaceholder() {
     if (this.props.placeholder === undefined) {
@@ -67,35 +78,6 @@ const DraftTextHandlers = {
     } else {
       return this.props.placeholder
     }
-  }
-}
-
-const defaultControls = {
-  fontFamily: false,
-  fontSize: true,
-  text: {
-    BOLD: true,
-    ITALIC: true,
-    UNDERLINE: true,
-    STRIKETHROUGH: true
-  },
-  link: {
-    set: true,
-    unset: true
-  },
-  block: {
-    headerTwo: true,
-    unorderedListItem: true,
-    orderedListItem: true,
-    alignLeft: true,
-    alignCenter: true,
-    alignRight: true
-  },
-  color: true,
-  background: true,
-  content: {
-    undo: true,
-    redo: true
   }
 }
 
@@ -111,19 +93,16 @@ export default class DraftText extends Component {
     //
     this.defaultSetting = {
       placeholder: '',
-      controls: defaultControls
+      controls: DefaultControls
     }
+    this.state = {
+      editorState: EditorState.createEmpty(),
+      placeholder: this.hasPlaceholder(),
+    };
     //setting defaultControls or customControls
     if(props.setting && props.setting.customControls) {
       this.defaultSetting.controls = props.setting.customControls[0]
     }
-    console.log(this.defaultSetting.controls)
-    //
-    this.state = {
-      editorState: EditorState.createEmpty(),
-      placeholder: this.hasPlaceholder(),
-      editMode: 0,
-    };
     //
     this.focus = (editorState) => {
       if(editorState.getSelection().getHasFocus()) {
@@ -173,9 +152,11 @@ export default class DraftText extends Component {
     ]);
     //Default state setting
     let defaultEditorState;
+
     let {
       defaultValue
     } = this.props
+
     if(defaultValue) {
       //Set the default value
       //if the defaultValue is null or ' '
@@ -292,7 +273,6 @@ export default class DraftText extends Component {
         {colorControls}
         {backgrounControls}
         {contentControls}
-        {StateLog}
       </div>
     )
 
@@ -325,14 +305,4 @@ export default class DraftText extends Component {
       </div>
     );
   }
-
-};
-
-const Link = (props) => {
-  const {href} = Entity.get(props.entityKey).getData();
-  return (
-    <a href={href} style={styles.meepEditorLink}>
-      {props.children}
-    </a>
-  );
 };
