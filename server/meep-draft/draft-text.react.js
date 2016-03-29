@@ -83,7 +83,7 @@ export default class DraftText extends Component {
     }
     //
     this.defaultSetting = {
-      placeholder: 'Write somthing...'
+      placeholder: ''
     }
     //
     this.state = {
@@ -116,7 +116,7 @@ export default class DraftText extends Component {
         getCustomState: (editorStateKey) => {
           return this.state.editorState[editorStateKey]();
         },
-        getConvertToRaw: convertToRaw(this.state.editorState.getCurrentContent())
+        getConvertToRaw: convertToRaw(this.state.editorState.getCurrentContent()),
       })
     }
     //
@@ -1049,17 +1049,3 @@ class BackgroundButton extends Component {
     );
   }
 }
-
-/**
-  暫時解決 React DOM editor 時會出現警告錯誤，等待 React 15.0 版修正。
-  issue: https://github.com/facebook/react/issues/5837
- */
-console.error = (function() {
-    var error = console.error
-
-    return function(exception) {
-        if ((exception + '').indexOf('Warning: A component is `contentEditable`') != 0) {
-            error.apply(console, arguments)
-        }
-    }
-})()
