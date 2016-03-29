@@ -29,7 +29,6 @@ export default new Styles({
     userSelectNone,
   },
   meepEditorInlineFontFamily: {
-    width: '130px',
     textAlign: 'center'
   },
   meepEditorDefaultColor: {
