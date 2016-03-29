@@ -8,7 +8,6 @@ export default new Styles({
   },
   editor: {
     border: '1px solid #59bcc9',
-    cursor: 'text',
     fontSize: '16px',
     fontFamily: "'Inconsolata', 'Menlo', 'Consolas', monospace",
     fontSize: '16px',
