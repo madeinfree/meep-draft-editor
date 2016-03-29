@@ -64,6 +64,43 @@ const editorStyle = {
 }
 ```
 
+# Editor default controls config
+```javascript
+/* you can choose the default meep-draft-editor controls,
+   it can helpful expansion the controls in the future.
+*/
+const editorSetting = {
+  customControls: [{
+    fontFamily: true,
+    fontSize: true,
+    text: {
+      BOLD: true,
+      ITALIC: true,
+      UNDERLINE: true,
+      STRIKETHROUGH: true
+    },
+    link: {
+      set: true,
+      unset: true
+    },
+    block: {
+      headerTwo: true,
+      unorderedListItem: true,
+      orderedListItem: true,
+      alignLeft: true,
+      alignCenter: true,
+      alignRight: true
+    },
+    color: true,
+    background: true,
+    content: {
+      undo: true,
+      redo: true
+    }
+  }]
+}
+```
+
 # Props API
 #### defaultValue
 #### placeholder
@@ -174,6 +211,17 @@ ReactDom.render(
       console.log(state.getCustomState('getSelection').getStartKey()) //取得自訂 getCustomState 物件資訊
     }}
     editorStyle={editorStyle}
+  />,
+  document.getElementById('app')
+);
+```
+## Editor Default Controls Settings
+```javascript
+import MeepDraftEditor from 'meep-draft-editor';
+
+ReactDom.render(
+  <MeepDraftEditor
+    setting={editorSetting}
   />,
   document.getElementById('app')
 );
@@ -306,6 +354,14 @@ ReactDom.render(
   <2016 - 03 - 28>
 
     - [x] version 1.2.3  release
+
+  <2016 - 03 - 29>
+
+    - [x] refactor all
+
+    - [x] added settings config
+
+    - [x] version 1.3.0rc-1  release
 
 # ISSUE
 
