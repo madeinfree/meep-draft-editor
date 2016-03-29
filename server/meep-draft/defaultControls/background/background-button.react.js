@@ -11,6 +11,7 @@ export default class BackgroundButton extends Component {
       this.props.onToggle(this.props.style);
     };
   }
+
   render() {
     let style;
     let labelColor;
@@ -22,7 +23,7 @@ export default class BackgroundButton extends Component {
     return (
       <span
         style={merge(styles.meepEditorDefaultColorButton, style, {backgroundColor: this.props.style.split('-')[1]})}
-        onMouseDown={this.onToggle}
+        onMouseDown={this.props.onToggle}
       >
       </span>
     );

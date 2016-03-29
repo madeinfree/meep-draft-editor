@@ -6,6 +6,19 @@ import React, { Component } from 'react';
 import merge from '../../lib/merge.js';
 import styles from '../../draft-text.style';
 
+import Draft, {
+  Editor,
+  EditorState,
+  Modifier,
+  RichUtils,
+  convertToRaw,
+  convertFromRaw,
+  Entity,
+  CompositeDecorator,
+  ContentState,
+  SelectionState,
+  CharacterMetadata } from 'draft-js';
+
 import StyleButton from './style-button.react';
 
 import {
@@ -17,6 +30,18 @@ const TextControls = (props) => {
   const {
     groupControls
   } = props
+
+  const _toggleInlineStyle = (inlineStyle) => {
+    const {
+      editorState,
+      onChange
+    } = props
+
+    const newEditorState = RichUtils.toggleInlineStyle(editorState, inlineStyle)
+
+    onChange(newEditorState);
+  }
+
   const button = (TEXTSTYLE.map((type, index) => {
     if (!groupControls[type.style]) return
     return (
@@ -25,7 +50,7 @@ const TextControls = (props) => {
         active={currentStyle.has(type.style)}
         label={<i className={type.label}></i>}
         style={type.style}
-        onToggle={props.onToggle}
+        onToggle={_toggleInlineStyle}
       /> )
   }))
   return (

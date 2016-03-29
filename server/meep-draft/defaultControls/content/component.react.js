@@ -3,6 +3,19 @@
  */
 import React, { Component } from 'react';
 
+import Draft, {
+  Editor,
+  EditorState,
+  Modifier,
+  RichUtils,
+  convertToRaw,
+  convertFromRaw,
+  Entity,
+  CompositeDecorator,
+  ContentState,
+  SelectionState,
+  CharacterMetadata } from 'draft-js';
+
 import merge from '../../lib/merge.js';
 import styles from '../../draft-text.style';
 
@@ -14,22 +27,32 @@ import {
 
 const ContentControls = (props) => {
   const {
-    groupControls
+    groupControls,
+    editorState,
+    onChange
   } = props
 
-  const content = [];
+  const _setEditorState = (editorState) => {
+    console.log(editorState.toJS());
+    onChange(editorState);
+  }
 
-  groupControls.redo ? (
-    content.push(
-      <ContentButton
-        key={`content-1`}
-        label={<i className="fa fa-repeat"></i>}
-        doAction="redo"
-        editorState={props.editorState}
-        onDoHandle={props.onDoHandle}
-      />
-    )
-  ) : null
+  const onDoHandle = (editorState, action) => {
+    let newEditorState
+    switch(action) {
+      case 'undo':
+        newEditorState = EditorState.undo(editorState);
+      break;
+      case 'redo':
+        newEditorState = EditorState.redo(editorState);
+      break;
+    }
+    if(newEditorState) {
+      _setEditorState(newEditorState);
+    }
+  };
+
+  const content = [];
 
   groupControls.undo ? (
     content.push(
@@ -38,7 +61,19 @@ const ContentControls = (props) => {
         label={<i className="fa fa-undo"></i>}
         doAction="undo"
         editorState={props.editorState}
-        onDoHandle={props.onDoHandle}
+        onDoHandle={onDoHandle}
+      />
+    )
+  ) : null
+
+  groupControls.redo ? (
+    content.push(
+      <ContentButton
+        key={`content-1`}
+        label={<i className="fa fa-repeat"></i>}
+        doAction="redo"
+        editorState={props.editorState}
+        onDoHandle={onDoHandle}
       />
     )
   ) : null

@@ -3,6 +3,19 @@
  */
 import React, { Component } from 'react';
 
+import Draft, {
+  Editor,
+  EditorState,
+  Modifier,
+  RichUtils,
+  convertToRaw,
+  convertFromRaw,
+  Entity,
+  CompositeDecorator,
+  ContentState,
+  SelectionState,
+  CharacterMetadata } from 'draft-js';
+
 import merge from '../../lib/merge.js';
 import styles from '../../draft-text.style';
 
@@ -10,7 +23,12 @@ import SelectFamilyItem from './select-family-item.react';
 
 import {
   FONTFAMILYSTYLE
-} from '../../draft-type-core/inline'
+} from '../../draft-type-core/inline';
+
+//custom-core
+import {
+  FONTFAMILY
+} from '../../draft-custom-core/custom'
 
 export default class FontFamilyControls extends Component {
   constructor(props, context) {
@@ -27,6 +45,37 @@ export default class FontFamilyControls extends Component {
     }
   }
 
+  _toggleFontFamily = (family) => {
+    const {
+      editorState,
+      onChange
+    } = this.props
+    const selection = editorState.getSelection();
+    //最多只能一次有一個顏色
+    const nextContentState = Object.keys(FONTFAMILY)
+                             .reduce((contentState, family) => {
+                               return Modifier.removeInlineStyle(contentState, selection, family)
+                             }, editorState.getCurrentContent());
+    let nextEditorState = EditorState.push(
+      editorState,
+      nextContentState,
+      'change-inline-style'
+    )
+    const currentStyle = editorState.getCurrentInlineStyle();
+    if(selection.isCollapsed()) {
+      nextEditorState = currentStyle.reduce((state, family) => {
+        return RichUtils.toggleInlineStyle(state, family);
+      }, nextEditorState);
+    }
+    if(!currentStyle.has(family)) {
+      nextEditorState = RichUtils.toggleInlineStyle(
+        nextEditorState,
+        family
+      )
+    }
+    onChange(nextEditorState)
+  }
+
   render() {
     let currentStyle = this.props.editorState.getCurrentInlineStyle();
     let fontFamily = 'Arial';
@@ -41,7 +90,7 @@ export default class FontFamilyControls extends Component {
               key={`font_family_button_${idx}`}
               size={family}
               style={FONTFAMILYSTYLE[idx].style}
-              onToggle={this.props.onToggle}
+              onToggle={this._toggleFontFamily}
               onOpen={this._onOpen}
             />
           )

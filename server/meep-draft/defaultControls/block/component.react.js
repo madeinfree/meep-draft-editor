@@ -3,6 +3,19 @@
  */
 import React, { Component } from 'react';
 
+import Draft, {
+  Editor,
+  EditorState,
+  Modifier,
+  RichUtils,
+  convertToRaw,
+  convertFromRaw,
+  Entity,
+  CompositeDecorator,
+  ContentState,
+  SelectionState,
+  CharacterMetadata } from 'draft-js';
+
 import merge from '../../lib/merge.js';
 import styles from '../../draft-text.style';
 
@@ -15,8 +28,44 @@ import BLOCK_TYPES from '../../draft-type-core/block'
 const BlockControls = (props) => {
   let {
     editorState,
-    groupControls
+    groupControls,
+    onChange
   } = props
+
+  const _toggleAlign = (align) => {
+    const {
+      onChange
+    } = props
+    const selection = editorState.getSelection();
+    const nextContentState = Object.keys(ALIGN)
+                             .reduce((contentState, align) => {
+                               return Modifier.removeInlineStyle(contentState, selection, align)
+                             }, editorState.getCurrentContent());
+    let nextEditorState = EditorState.push(
+      editorState,
+      nextContentState,
+      'change-inline-style'
+    )
+    const currentStyle = editorState.getCurrentInlineStyle();
+    if(selection.isCollapsed()) {
+      nextEditorState = currentStyle.reduce((state, align) => {
+        return RichUtils.toggleInlineStyle(state, align);
+      }, nextEditorState);
+    }
+    if(!currentStyle.has(align)) {
+      nextEditorState = RichUtils.toggleInlineStyle(
+        nextEditorState,
+        align
+      )
+    }
+    onChange(nextEditorState);
+  }
+
+  const _toggleBlockType = (blockType) => {
+    const newEditorState = RichUtils.toggleBlockType(editorState, blockType)
+    onChange(newEditorState);
+  }
+
   const selection = editorState.getSelection();
   const blockType = editorState.getCurrentContent()
                                .getBlockForKey(selection.getStartKey())
@@ -29,7 +78,7 @@ const BlockControls = (props) => {
         active={type.style === blockType}
         label={<i className={type.label}></i>}
         style={type.style}
-        onToggle={props.onToggle}
+        onToggle={_toggleBlockType}
       /> )
   }))
   return (

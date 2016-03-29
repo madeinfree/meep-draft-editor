@@ -3,6 +3,19 @@
  */
 import React, { Component } from 'react';
 
+import Draft, {
+  Editor,
+  EditorState,
+  Modifier,
+  RichUtils,
+  convertToRaw,
+  convertFromRaw,
+  Entity,
+  CompositeDecorator,
+  ContentState,
+  SelectionState,
+  CharacterMetadata } from 'draft-js';
+
 import merge from '../../lib/merge.js';
 import styles from '../../draft-text.style';
 
@@ -11,6 +24,10 @@ import BackgroundButton from './background-button.react';
 import {
   BACKGROUNDCOLORSTYLE
 } from '../../draft-type-core/inline'
+
+import {
+  BACKGROUNDCOLORS
+} from '../../draft-custom-core/custom'
 
 export default class BackgroundControls extends Component {
   constructor(props, context) {
@@ -26,6 +43,39 @@ export default class BackgroundControls extends Component {
       })
     }
   }
+
+  _toggleBackgroundColor = (backgroundcolor) => {
+    console.log(backgroundcolor)
+    const {
+      editorState,
+      onChange
+    } = this.props
+    const selection = editorState.getSelection();
+    //最多只能一次有一個顏色
+    const nextContentState = Object.keys(BACKGROUNDCOLORS)
+                             .reduce((contentState, backgroundcolor) => {
+                               return Modifier.removeInlineStyle(contentState, selection, backgroundcolor)
+                             }, editorState.getCurrentContent());
+    let nextEditorState = EditorState.push(
+      editorState,
+      nextContentState,
+      'change-inline-style'
+    )
+    const currentStyle = editorState.getCurrentInlineStyle();
+    if(selection.isCollapsed()) {
+      nextEditorState = currentStyle.reduce((state, backgroundcolor) => {
+        return RichUtils.toggleInlineStyle(state, backgroundcolor);
+      }, nextEditorState);
+    }
+    if(!currentStyle.has(backgroundcolor)) {
+      nextEditorState = RichUtils.toggleInlineStyle(
+        nextEditorState,
+        backgroundcolor
+      )
+    }
+    onChange(nextEditorState)
+  }
+
   render() {
     let {
       editorState
@@ -38,7 +88,9 @@ export default class BackgroundControls extends Component {
           active={currentStyle.has(type.style)}
           label={type.label}
           style={type.style}
-          onToggle={this.props.onToggle}
+          onToggle={() => {
+            this._toggleBackgroundColor(type.style);
+          }}
         />)
     })) : ( null )
     return (
