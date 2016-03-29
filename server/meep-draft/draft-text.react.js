@@ -18,6 +18,8 @@ import Draft, {
   SelectionState,
   CharacterMetadata } from 'draft-js';
 
+import camelcase from 'camelcase';
+
 //type-core
 import BLOCK_TYPES from './draft-type-core/block'
 import {
@@ -72,6 +74,35 @@ const DraftTextHandlers = {
   }
 }
 
+const defaultControls = {
+  fontFamily: false,
+  fontSize: true,
+  text: {
+    BOLD: true,
+    ITALIC: true,
+    UNDERLINE: true,
+    STRIKETHROUGH: true
+  },
+  link: {
+    set: true,
+    unset: true
+  },
+  block: {
+    headerTwo: true,
+    unorderedListItem: true,
+    orderedListItem: true,
+    alignLeft: true,
+    alignCenter: true,
+    alignRight: true
+  },
+  color: true,
+  background: true,
+  content: {
+    undo: true,
+    redo: true
+  }
+}
+
 export default class DraftText extends Component {
   constructor(props) {
     super(props);
@@ -83,13 +114,19 @@ export default class DraftText extends Component {
     }
     //
     this.defaultSetting = {
-      placeholder: ''
+      placeholder: '',
+      controls: defaultControls
     }
+    //setting defaultControls or customControls
+    if(props.setting && props.setting.customControls) {
+      this.defaultSetting.controls = props.setting.customControls[0]
+    }
+    console.log(this.defaultSetting.controls)
     //
     this.state = {
       editorState: EditorState.createEmpty(),
-      editMode: 0,
       placeholder: this.hasPlaceholder(),
+      editMode: 0,
     };
     //
     this.focus = (editorState) => {
@@ -402,6 +439,7 @@ export default class DraftText extends Component {
 
   render() {
     const {editorState} = this.state;
+
     let StateLog = this.state.editMode ? (
       <span style={{fontSize: '14px'}}>
         {' '}
@@ -424,10 +462,10 @@ export default class DraftText extends Component {
       }
     }
 
-    let rootStyle = this.checkRootStyle ? (this.props.editorStyle.root) : ({})
-    let rootControlStyle = this.checkRootControlStyle ? (this.props.editorStyle['root-control']) : ({})
-    let rootInputStyle = this.checkRootInputStyle ? (this.props.editorStyle['root-input']) : ({})
-    let render = [];
+    const rootStyle = this.checkRootStyle ? (this.props.editorStyle.root) : ({})
+    const rootControlStyle = this.checkRootControlStyle ? (this.props.editorStyle['root-control']) : ({})
+    const rootInputStyle = this.checkRootInputStyle ? (this.props.editorStyle['root-input']) : ({})
+    // let render = [];
 
     // this.ControlsComponentsRender = () => {
     //   for(let c in DefaultControlComponents) {
@@ -442,41 +480,80 @@ export default class DraftText extends Component {
     //   }
     // }
     // this.ControlsComponentsRender();
-    let controlsComponentEditor = this.props.readOnly ? null : (
+    const {
+      controls
+    } = this.defaultSetting
+
+    const fontFamilyControls = controls.fontFamily ? (
+      <FontFamilyControls
+        editorState={editorState}
+        onToggle={this.toggleFontFamily}
+        customStyle={rootControlStyle}
+      />
+    ) : null
+
+    const fontSizeControls = controls.fontSize ? (
+      <FontSizeControls
+        editorState={editorState}
+        onToggle={this.toggleFontSize}
+        customStyle={rootControlStyle}
+      />
+    ) : null
+
+    const textControls = controls.text ? (
+      <TextControls
+        editorState={editorState}
+        onToggle={this.toggleInlineStyle}
+        groupControls={controls.text}
+      />
+    ) : null
+
+    const linkControls = controls.link ? (
+      <LinkControls
+        onHandlLink={this._onHandlLink}
+        groupControls={controls.link}
+      />
+    ) : null
+
+    const blockControls = controls.block ? (
+      <BlockControls
+        editorState={editorState}
+        onToggle={this.toggleBlockType}
+        groupControls={controls.block}
+      />
+    ) : null
+
+    const colorControls = controls.color ? (
+      <ColorControls
+        editorState={editorState}
+        onToggle={this.toggleColor}
+      />
+    ) : null
+
+    const backgrounControls = controls.background ? (
+      <BackgroundControls
+        editorState={editorState}
+        onToggle={this.toggleBackgroundColor}
+      />
+    ) : null
+
+    const contentControls = controls.content ? (
+      <ContentControls
+        editorState={editorState}
+        onDoHandle={this.onDoHandle}
+        groupControls={controls.content}
+      />
+    ) : null
+    const controlsComponentEditor = this.props.readOnly ? null : (
       <div>
-        <FontFamilyControls
-          editorState={editorState}
-          onToggle={this.toggleFontFamily}
-          customStyle={rootControlStyle}
-        />
-        <FontSizeControls
-          editorState={editorState}
-          onToggle={this.toggleFontSize}
-          customStyle={rootControlStyle}
-        />
-        <TextControls
-          editorState={editorState}
-          onToggle={this.toggleInlineStyle}
-        />
-        <LinkControls
-          onHandlLink={this._onHandlLink}
-        />
-        <BlockControls
-          editorState={editorState}
-          onToggle={this.toggleBlockType}
-        />
-        <ColorControls
-          editorState={editorState}
-          onToggle={this.toggleColor}
-        />
-        <BackgroundControls
-          editorState={editorState}
-          onToggle={this.toggleBackgroundColor}
-        />
-        <ContentControls
-          editorState={editorState}
-          onDoHandle={this.onDoHandle}
-        />
+        {fontFamilyControls}
+        {fontSizeControls}
+        {textControls}
+        {linkControls}
+        {blockControls}
+        {colorControls}
+        {backgrounControls}
+        {contentControls}
         {StateLog}
       </div>
     )
@@ -752,8 +829,12 @@ class SelectFamilyItem extends Component {
 }
 
 const TextControls = (props) => {
-  let currentStyle = props.editorState.getCurrentInlineStyle();
-  let button = (TEXTSTYLE.map((type, index) => {
+  const currentStyle = props.editorState.getCurrentInlineStyle();
+  const {
+    groupControls
+  } = props
+  const button = (TEXTSTYLE.map((type, index) => {
+    if (!groupControls[type.style]) return
     return (
       <StyleButton
         key={`text_button_${index}`}
@@ -777,40 +858,54 @@ const TextControls = (props) => {
 }
 
 const LinkControls = (props) => {
-  let {
-    onHandlLink
+  const {
+    onHandlLink,
+    groupControls
   } = props
+  const links = [];
+
+  groupControls.set ? links.push(
+    <span
+      key={`link-2`}
+      style={merge(styles.meepEditorDefaultColor, styles.meepEditorDefaultButton)}
+      onClick={(e) => {
+        onHandlLink(e, 'addLink')
+      }}
+    >
+      <i className="fa fa-link"></i>
+    </span>
+  ) : null
+
+  groupControls.unset ? links.push(
+    <span
+      key={`link-1`}
+      style={merge(styles.meepEditorDefaultColor, styles.meepEditorDefaultButton)}
+      onClick={(e) => {
+        onHandlLink(e, 'removeLink')
+      }}
+    >
+      <i className="fa fa-unlink"></i>
+    </span>
+  ) : null
+
   return (
     <span>
-      <span
-        style={merge(styles.meepEditorDefaultColor, styles.meepEditorDefaultButton)}
-        onClick={(e) => {
-          onHandlLink(e, 'addLink')
-        }}
-      >
-        <i className="fa fa-link"></i>
-      </span>
-      <span
-        style={merge(styles.meepEditorDefaultColor, styles.meepEditorDefaultButton)}
-        onClick={(e) => {
-          onHandlLink(e, 'removeLink')
-        }}
-      >
-        <i className="fa fa-unlink"></i>
-      </span>
+      {links}
     </span>
   )
 }
 
 const BlockControls = (props) => {
   let {
-    editorState
+    editorState,
+    groupControls
   } = props
   const selection = editorState.getSelection();
   const blockType = editorState.getCurrentContent()
                                .getBlockForKey(selection.getStartKey())
                                .getType();
   let button = (BLOCK_TYPES.map((type, index) => {
+    if (!groupControls[camelcase(type.style)]) return
     return (
       <StyleButton
         key={`block_button_${index}`}
@@ -928,22 +1023,41 @@ class BackgroundControls extends Component {
 }
 
 const ContentControls = (props) => {
-  return (
-    <div
-      style={styles.meepEditorInline}
-    >
+  const {
+    groupControls
+  } = props
+
+  const content = [];
+  
+  groupControls.redo ? (
+    content.push(
       <ContentButton
-        label={<i className="fa fa-undo"></i>}
-        doAction="undo"
-        editorState={props.editorState}
-        onDoHandle={props.onDoHandle}
-      />
-      <ContentButton
+        key={`content-1`}
         label={<i className="fa fa-repeat"></i>}
         doAction="redo"
         editorState={props.editorState}
         onDoHandle={props.onDoHandle}
       />
+    )
+  ) : null
+
+  groupControls.undo ? (
+    content.push(
+      <ContentButton
+        key={`content-2`}
+        label={<i className="fa fa-undo"></i>}
+        doAction="undo"
+        editorState={props.editorState}
+        onDoHandle={props.onDoHandle}
+      />
+    )
+  ) : null
+
+  return (
+    <div
+      style={styles.meepEditorInline}
+    >
+      {content}
     </div>
   );
 }

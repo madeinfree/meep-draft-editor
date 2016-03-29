@@ -18,6 +18,37 @@ const editorStyle = {
   }
 }
 
+const editorSetting = {
+  customControls: [{
+    fontFamily: true,
+    fontSize: true,
+    text: {
+      BOLD: true,
+      ITALIC: true,
+      UNDERLINE: true,
+      STRIKETHROUGH: true
+    },
+    link: {
+      set: true,
+      unset: true
+    },
+    block: {
+      headerTwo: true,
+      unorderedListItem: true,
+      orderedListItem: true,
+      alignLeft: true,
+      alignCenter: true,
+      alignRight: true
+    },
+    color: true,
+    background: true,
+    content: {
+      undo: true,
+      redo: true
+    }
+  }]
+}
+
 render(
   <MeepDraftEditor
     onEditorChange={(state) => {
@@ -26,6 +57,7 @@ render(
     }}
     editorStyle={editorStyle}
     readOnly={false}
+    setting={editorSetting}
   />,
   document.getElementById('app')
 );
