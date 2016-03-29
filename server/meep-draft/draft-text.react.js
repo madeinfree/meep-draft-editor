@@ -204,16 +204,6 @@ export default class DraftText extends Component {
       controls
     } = this.defaultSetting
 
-    let StateLog = this.state.editMode ? (
-      <span style={{fontSize: '14px'}}>
-        {' '}
-        <MaterialButton
-          label="CLEAR LOG"
-          onClick={this.logClear}
-        />
-      </span>
-    ) : (null)
-
     if(this.props.editorStyle !== undefined) {
       this.checkRootStyle = () => {
         return (this.props.editorStyle !== undefined) && (this.props.editorStyle.root !== undefined)
@@ -229,7 +219,7 @@ export default class DraftText extends Component {
     const rootStyle = this.checkRootStyle ? (this.props.editorStyle.root) : ({})
     const rootControlStyle = this.checkRootControlStyle ? (this.props.editorStyle['root-control']) : ({})
     const rootInputStyle = this.checkRootInputStyle ? (this.props.editorStyle['root-input']) : ({})
-    
+
     const fontFamilyControls = controls.fontFamily ? (
       <FontFamilyControls
         editorState={editorState}
