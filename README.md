@@ -105,13 +105,10 @@ const editorSetting = {
 #### defaultValue
 #### placeholder
 #### editorStyle
+#### plugins
 
 # EVENT
-#### onEditorChange(state)
-- state.getEditorState
-- state.getCurrentContent
-- state.CustomState
-- state.getConvertToRaw
+#### onEditorChange(content)
 
 # dependencies
 ```javascript
@@ -129,87 +126,33 @@ ReactDom.render(
   document.getElementById('app')
 );
 ```
-## 設定預設內容 (default-value)
+## default editor block value
 ```javascript
-//defaultValue 必須要是 Draft ConvertToRaw JSON 物件
+//defaultValue must be Draft ConvertToRaw JSON(Object)
 const defaultValue = {"entityMap":{},"blocks":[{"key":"demmk","text":"Hello, Default Value !","type":"align-left","depth":0,"inlineStyleRanges":[],"entityRanges":[]}]}
 <MeepDraftEditor
   defaultValue={defaultValue}
 />
 ```
-## 取得 storage 物件
-```javascript
-<MeepDraftEditor
-  onEditorChange={(state) => {
-    console.log(state.getConvertToRaw)
-  }}
-/>,
-```
-## 取得基本訊息事件方法
+## get the content when you want to saving an editor state to storage
 ```javascript
 import MeepDraftEditor from 'meep-draft-editor';
 
 ReactDom.render(
   <MeepDraftEditor
-    onEditorChange={(state) => {
-      console.log(state) //取得 EditorState 物件
+    onEditorChange={(content) => {
+      console.log(content) //get convertToRaw it could useful when saving an editor state for storage
     }}
   />,
   document.getElementById('app')
 );
 ```
-
+## custom editor css style
 ```javascript
 import MeepDraftEditor from 'meep-draft-editor';
 
 ReactDom.render(
   <MeepDraftEditor
-    onEditorChange={(state) => {
-      console.log(state.getEditorState) //取得 EditorState 物件資訊
-    }}
-  />,
-  document.getElementById('app')
-);
-```
-
-```javascript
-import MeepDraftEditor from 'meep-draft-editor';
-
-ReactDom.render(
-  <MeepDraftEditor
-    onEditorChange={(state) => {
-      console.log(state.getCurrentContent) //取得 CurrentContent 物件資訊
-    }}
-  />,
-  document.getElementById('app')
-);
-```
-
-```javascript
-import MeepDraftEditor from 'meep-draft-editor';
-
-ReactDom.render(
-  <MeepDraftEditor
-    onEditorChange={(state) => {
-      //此方法必須要參考 Draft.js api 文件使用 http://facebook.github.io/draft-js/docs/overview.html#content
-      //state.getCustomState 會返回一個 editorState 的方法提供使用
-      console.log(state.getCustomState('getSelection').getStartKey()) //取得自訂 getCustomState 物件資訊
-    }}
-  />,
-  document.getElementById('app')
-);
-```
-## 自訂樣式方法
-```javascript
-import MeepDraftEditor from 'meep-draft-editor';
-
-ReactDom.render(
-  <MeepDraftEditor
-    onEditorChange={(state) => {
-      //此方法必須要參考 Draft.js api 文件使用 http://facebook.github.io/draft-js/docs/overview.html#content
-      //state.getCustomState 會返回一個 editorState 的方法提供使用
-      console.log(state.getCustomState('getSelection').getStartKey()) //取得自訂 getCustomState 物件資訊
-    }}
     editorStyle={editorStyle}
   />,
   document.getElementById('app')
@@ -226,22 +169,38 @@ ReactDom.render(
   document.getElementById('app')
 );
 ```
-## 自訂輸入欄位提示方法
+## custom placeholder
 ```javascript
 import MeepDraftEditor from 'meep-draft-editor';
 
 ReactDom.render(
   <MeepDraftEditor
-    onEditorChange={(state) => {
-      //此方法必須要參考 Draft.js api 文件使用 http://facebook.github.io/draft-js/docs/overview.html#content
-      //state.getCustomState 會返回一個 editorState 的方法提供使用
-      console.log(state.getCustomState('getSelection').getStartKey()) //取得自訂 getCustomState 物件資訊
-    }}
-    placeholder="現在可以自訂輸入提示內容,編輯器樣式,控制項目樣式"
+    placeholder="Write something ..."
   />,
   document.getElementById('app')
 );
 ```
+## use plugins
+#### Congratulations !! Now 1.3.0 you can use the draft-js-plugins whithin meep-draft-editor and thanks for draft-js-plugins, or you can just use your custom plugins.
+```
+npm install draft-js-hashtag-plugin --save
+```
+```javascript
+import MeepDraftEditor from 'meep-draft-editor';
+//plugin
+import createHashtagPlugin from 'draft-js-hashtag-plugin';
+import 'draft-js-hashtag-plugin/lib/plugin.css';
+const hashtagPlugin = createHashtagPlugin();
+const plugins = [hashtagPlugin.pluginProps, ..YourCustomPlugin];
+
+ReactDom.render(
+  <MeepDraftEditor
+    plugins={plugins}
+  />,
+  document.getElementById('app')
+);
+```
+[HOW TO MAKE CUSTOM EDITOR PLUGS ?](http://#)
 
 # CHANGE-LOG
 <2016 - 02 - ..>
@@ -362,6 +321,18 @@ ReactDom.render(
     - [x] added settings config
 
     - [x] version 1.3.0rc-1  release
+
+  <2016 - 04 - 3>
+
+    - [x] refactor a little
+
+    - [x] compatibility with draft-js-plugins
+
+    - [x] allow to added custom plugins
+
+    - [x] version 1.3.0 release
+
+    - [x] Changed README, throw out the extra state
 
 # ISSUE
 
