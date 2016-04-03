@@ -111,7 +111,7 @@ export default class DraftText extends Component {
     }
     //
     this.focus = (editorState) => {
-      if(editorState.getSelection().getHasFocus()) {
+      if(!editorState.getSelection().getHasFocus()) {
         this.refs.editor.focus();
       }
     }
@@ -288,9 +288,8 @@ export default class DraftText extends Component {
         <div
           style={merge(styles.editor, rootInputStyle)}
           onClick={()=>{
-              this.focus(editorState)
-            }
-          }
+            this.focus(editorState)
+          }}
         >
           <Editor
             {...this.props}

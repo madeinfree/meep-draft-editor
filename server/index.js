@@ -13,7 +13,7 @@ const editorStyle = {
     position: 'relative'
   },
   "root-input": {
-    minHeight: '150px',
+    // minHeight: '150px',
     width: '620px',
   }
 }
