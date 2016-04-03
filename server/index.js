@@ -13,7 +13,7 @@ const editorStyle = {
     position: 'relative'
   },
   "root-input": {
-    minHeight: '150px',
+    // minHeight: '150px',
     width: '620px',
   }
 }
@@ -51,9 +51,8 @@ const editorSetting = {
 
 render(
   <MeepDraftEditor
-    onEditorChange={(state) => {
-      // console.log(JSON.stringify(state.getResult))
-      console.log(state.getEditorState.toJS())
+    onEditorChange={(content) => {
+      console.log(content);
     }}
     editorStyle={editorStyle}
     readOnly={false}

@@ -1,33 +1,29 @@
 import React, { PropTypes, Component } from 'react';
-import ReactDOM from 'react-dom';
-// components load
-import {
-  FontFamilyControls,
-  FontSizeControls,
-  TextControls,
-  LinkControls,
-  BlockControls,
-  ColorControls,
-  BackgroundControls,
-  ContentControls
-} from './defaultControls/index.react';
+//css
+import './draft-vendor/draft-text.css'
+import './draft-vendor/draft-editor.css'
+import styles from './draft-text.style'
 //
 import DefaultControls from './defaultSettings/default-controls'
+import DefaultControlsComponents from './defaultControls/default-controls-components.react'
 //
+import {
+  ALIGN_LEFT,
+  ALIGN_CENTER,
+  ALIGN_RIGHT
+} from './constants'
+//util
 import merge from './lib/merge.js'
-import styles from './draft-text.style'
+//draft-js
 import Draft, {
   Editor,
   EditorState,
-  Modifier,
-  RichUtils,
   convertToRaw,
   convertFromRaw,
   Entity,
   CompositeDecorator,
-  ContentState,
-  SelectionState,
-  CharacterMetadata } from 'draft-js';
+  ContentState
+} from 'draft-js';
 //custom-core
 import {
   FONTSIZE,
@@ -37,14 +33,11 @@ import {
   FONTFAMILY
 } from './draft-custom-core/custom'
 
-import './draft-vendor/draft-text.css'
-import './draft-vendor/draft-editor.css'
-
 const getBlockStyle = (block) => {
   switch (block.getType()) {
-    case 'align-left': return 'custon-align-left';
-    case 'align-center': return 'custon-align-center';
-    case 'align-right': return 'custon-align-right';
+    case ALIGN_LEFT: return 'custon-align-left';
+    case ALIGN_CENTER: return 'custon-align-center';
+    case ALIGN_RIGHT: return 'custon-align-right';
     default: return null;
   }
 }
@@ -72,16 +65,32 @@ const Link = (props) => {
 };
 
 const DraftTextHandlers = {
-  hasPlaceholder() {
-    if (this.props.placeholder === undefined) {
-      return this.defaultSetting.placeholder;
-    } else {
-      return this.props.placeholder
-    }
+  getState() {
+    return this.state.editorState;
+  },
+  getConvertToRaw(EditorChange) {
+    return EditorChange(convertToRaw(this.getContent()));
+  },
+  getContent() {
+    return this.getState().getCurrentContent();
+  },
+  getDefaultControls() {
+    return (this.props.setting && this.props.setting.customControls) ? this.props.setting.customControls[0] : DefaultControls
+  },
+  getPlaceHolder() {
+    return this.getReadOnly() ? null : this.props.placeholder
+  },
+  getReadOnly() {
+    return (this.props.readOnly === true) ? true : false;
   }
 }
 
 export default class DraftText extends Component {
+
+  static defaultProps = {
+    placeholder: '',
+  }
+
   constructor(props) {
     super(props);
     //
@@ -90,22 +99,13 @@ export default class DraftText extends Component {
         this[fn] = this::DraftTextHandlers[fn];
       }
     }
-    //
-    this.defaultSetting = {
-      placeholder: '',
-      controls: DefaultControls
-    }
+
     this.state = {
-      editorState: EditorState.createEmpty(),
-      placeholder: this.hasPlaceholder(),
+      editorState: EditorState.createEmpty()
     };
-    //setting defaultControls or customControls
-    if(props.setting && props.setting.customControls) {
-      this.defaultSetting.controls = props.setting.customControls[0]
-    }
-    //
+
     this.focus = (editorState) => {
-      if(editorState.getSelection().getHasFocus()) {
+      if(!editorState.getSelection().getHasFocus()) {
         this.refs.editor.focus();
       }
     }
@@ -116,31 +116,10 @@ export default class DraftText extends Component {
     //
     this.onBlur = (e, editorState) => {
       if(this.props.onEditorChange) {
-        this.stateCache(this.props.onEditorChange)
+        return this.getConvertToRaw(this.props.onEditorChange)
       }
     }
-    //
-    this.stateCache = (EditorChange) => {
-      EditorChange({
-        getEditorState: this.state.editorState,
-        getCurrentContent: this.state.editorState.getCurrentContent(),
-        getStateText: this.state.editorState.getCurrentContent().getBlockForKey(this.state.editorState.getSelection().getStartKey()).getText(),
-        getCustomState: (editorStateKey) => {
-          return this.state.editorState[editorStateKey]();
-        },
-        getConvertToRaw: convertToRaw(this.state.editorState.getCurrentContent()),
-      })
-    }
-    //
 
-
-    this.logState = () => {
-      const content = this.state.editorState.getCurrentContent();
-      console.log(convertToRaw(content))
-    }
-    this.logClear = () => {
-      console.clear()
-    }
   }
 
   componentWillMount() {
@@ -174,16 +153,20 @@ export default class DraftText extends Component {
     })
   }
 
-  isReadOnly() {
-    return (this.props.readOnly === true) ? true : false;
-  }
-
   render() {
-    const {editorState} = this.state;
+    const {
+       editorState
+    } = this.state;
 
     const {
-      controls
-    } = this.defaultSetting
+      readOnly
+    } = this.props
+
+    const {
+      onChange,
+      onBlur,
+      getPlaceHolder
+    } = this;
 
     if(this.props.editorStyle !== undefined) {
       this.checkRootStyle = () => {
@@ -201,78 +184,14 @@ export default class DraftText extends Component {
     const rootControlStyle = this.checkRootControlStyle ? (this.props.editorStyle['root-control']) : ({})
     const rootInputStyle = this.checkRootInputStyle ? (this.props.editorStyle['root-input']) : ({})
 
-    const fontFamilyControls = controls.fontFamily ? (
-      <FontFamilyControls
-        editorState={editorState}
-        customStyle={rootControlStyle}
-        onChange={this.onChange}
-      />
-    ) : null
-
-    const fontSizeControls = controls.fontSize ? (
-      <FontSizeControls
-        editorState={editorState}
-        customStyle={rootControlStyle}
-        onChange={this.onChange}
-      />
-    ) : null
-
-    const textControls = controls.text ? (
-      <TextControls
-        editorState={editorState}
-        groupControls={controls.text}
-        onChange={this.onChange}
-      />
-    ) : null
-
-    const linkControls = controls.link ? (
-      <LinkControls
-        editorState={editorState}
-        groupControls={controls.link}
-        onChange={this.onChange}
-      />
-    ) : null
-
-    const blockControls = controls.block ? (
-      <BlockControls
-        editorState={editorState}
-        groupControls={controls.block}
-        onChange={this.onChange}
-      />
-    ) : null
-
-    const colorControls = controls.color ? (
-      <ColorControls
-        editorState={editorState}
-        onChange={this.onChange}
-      />
-    ) : null
-
-    const backgrounControls = controls.background ? (
-      <BackgroundControls
-        editorState={editorState}
-        onChange={this.onChange}
-      />
-    ) : null
-
-    const contentControls = controls.content ? (
-      <ContentControls
-        editorState={editorState}
-        groupControls={controls.content}
-        onChange={this.onChange}
-      />
-    ) : null
-
-    const controlsComponentEditor = this.props.readOnly ? null : (
+    const controlsComponentEditor= this.props.readOnly ? null : (
       <div>
-        {fontFamilyControls}
-        {fontSizeControls}
-        {textControls}
-        {linkControls}
-        {blockControls}
-        {colorControls}
-        {backgrounControls}
-        {contentControls}
+        <DefaultControlsComponents
+          editorState={this.getState()}
+          onChange={this.onChange}
+          readOnly={this.props.readOnly}
+          controls={this.getDefaultControls()}
+        />
       </div>
     )
 
@@ -282,24 +201,21 @@ export default class DraftText extends Component {
         <div
           style={merge(styles.editor, rootInputStyle)}
           onClick={()=>{
-              this.focus(editorState)
-            }
-          }
+            this.focus(editorState)
+          }}
         >
           <Editor
             {...this.props}
             customStyleMap={merge(COLORS, BACKGROUNDCOLORS, ALIGN, FONTSIZE, FONTFAMILY)}
             editorState={editorState}
-            readOnly={this.props.readOnly}
-            onChange={this.onChange}
-            onBlur={(e) => {
-              this.onBlur(e, editorState)
-            }}
-            placeholder={this.isReadOnly() ? null : this.state.placeholder}
+            readOnly={readOnly}
+            onChange={onChange}
+            onBlur={onBlur}
+            placeholder={getPlaceHolder}
             blockStyleFn={getBlockStyle}
             ref="editor"
             suppressContentEditableWarning={false}
-            spellCheck={false}
+            spellCheck={true}
           />
         </div>
       </div>

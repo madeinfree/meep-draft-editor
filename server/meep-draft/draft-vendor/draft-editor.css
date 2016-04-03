@@ -3,7 +3,6 @@
   position: absolute;
 }
 .public-DraftEditor-content {
-  min-height: 150px;
   outline: none;
   white-space: pre-wrap;
 }
