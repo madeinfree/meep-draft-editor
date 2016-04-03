@@ -19,8 +19,11 @@
   "homepage": "https://github.com/madeinfree/meep-draft-editor#readme",
   "dependencies": {
     "camelcase": "^2.1.1",
+    "decorate-component-with-props": "^1.0.2",
     "draft-js": "^0.3.0",
+    "draft-js-hashtag-plugin": "0.0.4",
     "font-awesome": "^4.5.0",
+    "immutable": "^3.7.6",
     "react": "^0.14.7",
     "react-dom": "^0.14.7"
   },

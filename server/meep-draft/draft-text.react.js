@@ -1,4 +1,5 @@
 import React, { PropTypes, Component } from 'react';
+import { fromJS } from 'immutable';
 //css
 import './draft-vendor/draft-text.css'
 import './draft-vendor/draft-editor.css'
@@ -24,6 +25,10 @@ import Draft, {
   CompositeDecorator,
   ContentState
 } from 'draft-js';
+//pluginEntities
+import LinkPluginEntites from './default-plugin-entites/link-entites/decorator';
+import createPluginDecorator from './default-plugin-entites/create-plugin-decorator'
+import moveSelectionToEnd from './default-plugin-entites/moveSelectionToEnd';
 //custom-core
 import {
   FONTSIZE,
@@ -41,28 +46,6 @@ const getBlockStyle = (block) => {
     default: return null;
   }
 }
-
-const findLinkEntities = (contentBlock, callback) => {
-  contentBlock.findEntityRanges(
-    (character) => {
-      const entityKey = character.getEntity();
-      return (
-        entityKey !== null &&
-        Entity.get(entityKey).getType() === 'link'
-      );
-    },
-    callback
-  );
-}
-
-const Link = (props) => {
-  const {href} = Entity.get(props.entityKey).getData();
-  return (
-    <a href={href} style={styles.meepEditorLink}>
-      {props.children}
-    </a>
-  );
-};
 
 const DraftTextHandlers = {
   getState() {
@@ -111,7 +94,23 @@ export default class DraftText extends Component {
     }
     //
     this.onChange = (editorState) => {
-      this.setState({editorState});
+      console.log(editorState.toJS());
+      this.setState({
+        editorState,
+      });
+    };
+    //
+    this.onPluginChange = (editorState) => {
+      let newEditorState = editorState;
+      this.props.plugins.forEach((plugin) => {
+        if (plugin.onChange) {
+          newEditorState = plugin.onChange(newEditorState);
+        }
+      });
+
+      if (this.onChange) {
+        this.onChange(newEditorState);
+      }
     }
     //
     this.onBlur = (e, editorState) => {
@@ -122,13 +121,75 @@ export default class DraftText extends Component {
 
   }
 
+  createHandleHooks = (methodName, plugins) => (...args) => {
+    const newArgs = [].slice.apply(args);
+    newArgs.push(this.getEditorState);
+    newArgs.push(this.onChange);
+    for (const plugin of plugins) {
+      if (typeof plugin[methodName] !== 'function') continue;
+      const result = plugin[methodName](...newArgs);
+      if (result === true) return true;
+    }
+
+    return false;
+  };
+
+  createOnHooks = (methodName, plugins) => (event) => (
+    plugins
+      .filter((plugin) => typeof plugin[methodName] === 'function')
+      .forEach((plugin) => plugin[methodName](event))
+  );
+
+  createFnHooks = (methodName, plugins) => (...args) => {
+    const newArgs = [].slice.apply(args);
+    newArgs.push(this.getEditorState);
+    newArgs.push(this.onChange);
+    for (const plugin of plugins) {
+      if (typeof plugin[methodName] !== 'function') continue;
+      const result = plugin[methodName](...newArgs);
+      if (result !== undefined) return result;
+    }
+
+    return false;
+  };
+
+  createPluginHooks = () => {
+    const pluginHooks = {};
+    const plugins = this.resolvePlugins();
+
+    plugins.forEach((plugin) => {
+      Object.keys(plugin).forEach((attrName) => {
+        if (attrName === 'onChange') return;
+
+        if (attrName.indexOf('on') === 0) {
+          pluginHooks[attrName] = this.createOnHooks(attrName, plugins);
+        }
+
+        if (attrName.indexOf('handle') === 0) {
+          pluginHooks[attrName] = this.createHandleHooks(attrName, plugins);
+        }
+
+        // checks if the function ends with Fn
+        if (attrName.length - 2 === attrName.indexOf('Fn')) {
+          pluginHooks[attrName] = this.createFnHooks(attrName, plugins);
+        }
+      });
+    });
+    return pluginHooks;
+  }
+
+  resolvePlugins = () => {
+    const plugins = this.props.plugins.slice(0);
+    if (this.props.defaultKeyBindings) {
+      plugins.push(defaultKeyBindingPlugin);
+    }
+
+    return plugins;
+  };
+
   componentWillMount() {
-    const decorator = new CompositeDecorator([
-      {
-        strategy: findLinkEntities,
-        component: Link,
-      },
-    ]);
+    let createCompositeDecorator;
+    // const decorator = new CompositeDecorator(plugin);
     //Default state setting
     let defaultEditorState;
 
@@ -145,12 +206,11 @@ export default class DraftText extends Component {
       let contentState = Draft.ContentState.createFromBlockArray(Draft.convertFromRaw(this.props.defaultValue))
       defaultEditorState = Draft.EditorState.createWithContent(contentState, decorator);
     }
-    if(  (typeof this.props.defaultValue === 'string') || (this.props.defaultValue === undefined && decorator !== undefined)  ) {
-      defaultEditorState = Draft.EditorState.createEmpty(decorator);
+    if(this.props.plugins) {
+      createCompositeDecorator = createPluginDecorator(this.props.plugins, this.getState, this.onPluginChange);
+      defaultEditorState = EditorState.set(this.getState(), { decorator: createCompositeDecorator });
     }
-    this.setState({
-      editorState: defaultEditorState
-    })
+    this.onChange(moveSelectionToEnd(defaultEditorState));
   }
 
   render() {
@@ -195,6 +255,8 @@ export default class DraftText extends Component {
       </div>
     )
 
+    const pluginHooks = this.createPluginHooks();
+
     return (
       <div style={merge(styles.root, rootStyle)}>
         { controlsComponentEditor }
@@ -206,6 +268,7 @@ export default class DraftText extends Component {
         >
           <Editor
             {...this.props}
+            {...pluginHooks}
             customStyleMap={merge(COLORS, BACKGROUNDCOLORS, ALIGN, FONTSIZE, FONTFAMILY)}
             editorState={editorState}
             readOnly={readOnly}
