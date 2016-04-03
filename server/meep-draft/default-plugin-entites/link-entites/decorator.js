@@ -30,8 +30,12 @@ const Link = (props) => {
 };
 
 const decorator = {
-  strategy: findLinkEntities,
-  component: Link,
+  decorators: [
+    {
+      strategy: findLinkEntities,
+      component: Link
+    }
+  ]
 };
 
 export default decorator;

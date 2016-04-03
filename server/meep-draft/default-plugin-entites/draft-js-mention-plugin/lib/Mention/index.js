@@ -20,7 +20,6 @@ var Mention = function Mention(props) {
 
   var mention = _Entity$get$getData.mention;
 
-
   if (mention.has('link')) {
     return _react2.default.createElement(
       'a',

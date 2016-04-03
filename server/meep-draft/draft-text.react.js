@@ -84,7 +84,7 @@ export default class DraftText extends Component {
     }
 
     this.state = {
-      editorState: EditorState.createEmpty()
+      editorState: this.props.defaultValue ? EditorState.createWithContent(ContentState.createFromBlockArray(Draft.convertFromRaw(this.props.defaultValue))) : EditorState.createEmpty()
     };
 
     this.focus = (editorState) => {
@@ -94,7 +94,6 @@ export default class DraftText extends Component {
     }
     //
     this.onChange = (editorState) => {
-      console.log(editorState.toJS());
       this.setState({
         editorState,
       });
@@ -189,28 +188,19 @@ export default class DraftText extends Component {
 
   componentWillMount() {
     let createCompositeDecorator;
-    // const decorator = new CompositeDecorator(plugin);
     //Default state setting
     let defaultEditorState;
 
-    let {
-      defaultValue
-    } = this.props
-
-    if(defaultValue) {
-      //Set the default value
-      //if the defaultValue is null or ' '
-      if( (typeof defaultValue === 'string') && (defaultValue == null || defaultValue.trim() === '')  ) {
-        return
-      }
-      let contentState = Draft.ContentState.createFromBlockArray(Draft.convertFromRaw(this.props.defaultValue))
-      defaultEditorState = Draft.EditorState.createWithContent(contentState, decorator);
-    }
     if(this.props.plugins) {
-      createCompositeDecorator = createPluginDecorator(this.props.plugins, this.getState, this.onPluginChange);
+      const concatPlugin = this.props.plugins.concat(LinkPluginEntites);
+      createCompositeDecorator = createPluginDecorator(concatPlugin, this.getState, this.onPluginChange);
+      defaultEditorState = EditorState.set(this.getState(), { decorator: createCompositeDecorator });
+    } else {
+      const concatPlugin = [LinkPluginEntites];
+      createCompositeDecorator = createPluginDecorator(concatPlugin, this.getState, this.onPluginChange);
       defaultEditorState = EditorState.set(this.getState(), { decorator: createCompositeDecorator });
     }
-    this.onChange(moveSelectionToEnd(defaultEditorState));
+    this.onChange(defaultEditorState);
   }
 
   render() {
@@ -255,7 +245,7 @@ export default class DraftText extends Component {
       </div>
     )
 
-    const pluginHooks = this.createPluginHooks();
+    const pluginHooks = this.props.plugins ? this.createPluginHooks() : null
 
     return (
       <div style={merge(styles.root, rootStyle)}>
