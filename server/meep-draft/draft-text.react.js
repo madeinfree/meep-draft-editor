@@ -79,22 +79,23 @@ const Link = (props) => {
 };
 
 const DraftTextHandlers = {
-  hasPlaceholder() {
-    if (this.props.placeholder === undefined) {
-      return this.defaultSetting.placeholder;
-    } else {
-      return this.props.placeholder
-    }
-  },
   getState() {
     return this.state.editorState;
   },
   getConvertToRaw() {
     return convertToRaw(this.getState().getCurrentContent());
+  },
+  getDefaultControls() {
+    return (this.props.setting && this.props.setting.customControls) ? this.props.setting.customControls[0] : DefaultControls
   }
 }
 
 export default class DraftText extends Component {
+
+  static defaultProps = {
+    placeholder: '',
+  }
+
   constructor(props) {
     super(props);
     //
@@ -103,14 +104,9 @@ export default class DraftText extends Component {
         this[fn] = this::DraftTextHandlers[fn];
       }
     }
-    //
-    this.defaultSetting = {
-      placeholder: '',
-      controls: (props.setting && props.setting.customControls) ? props.setting.customControls[0] : DefaultControls
-    }
+
     this.state = {
-      editorState: EditorState.createEmpty(),
-      placeholder: this.hasPlaceholder(),
+      editorState: EditorState.createEmpty()
     };
 
     this.focus = (editorState) => {
@@ -184,7 +180,7 @@ export default class DraftText extends Component {
 
     const {
       controls
-    } = this.defaultSetting
+    } = this.props
 
     if(this.props.editorStyle !== undefined) {
       this.checkRootStyle = () => {
@@ -208,7 +204,7 @@ export default class DraftText extends Component {
           editorState={this.getState()}
           onChange={this.onChange}
           readOnly={this.props.readOnly}
-          controls={controls}
+          controls={this.getDefaultControls()}
         />
       </div>
     )
@@ -231,11 +227,11 @@ export default class DraftText extends Component {
             onBlur={(e) => {
               this.onBlur(e, editorState)
             }}
-            placeholder={this.isReadOnly() ? null : this.state.placeholder}
+            placeholder={this.isReadOnly() ? null : this.props.placeholder}
             blockStyleFn={getBlockStyle}
             ref="editor"
             suppressContentEditableWarning={false}
-            spellCheck={false}
+            spellCheck={true}
           />
         </div>
       </div>
