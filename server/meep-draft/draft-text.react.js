@@ -84,6 +84,12 @@ const DraftTextHandlers = {
     } else {
       return this.props.placeholder
     }
+  },
+  getState() {
+    return this.state.editorState;
+  },
+  getConvertToRaw() {
+    return convertToRaw(this.getState().getCurrentContent());
   }
 }
 
@@ -127,15 +133,7 @@ export default class DraftText extends Component {
     }
     //
     this.stateCache = (EditorChange) => {
-      EditorChange({
-        getEditorState: this.state.editorState,
-        getCurrentContent: this.state.editorState.getCurrentContent(),
-        getStateText: this.state.editorState.getCurrentContent().getBlockForKey(this.state.editorState.getSelection().getStartKey()).getText(),
-        getCustomState: (editorStateKey) => {
-          return this.state.editorState[editorStateKey]();
-        },
-        getConvertToRaw: convertToRaw(this.state.editorState.getCurrentContent()),
-      })
+      EditorChange(this.getConvertToRaw());
     }
     //
 
