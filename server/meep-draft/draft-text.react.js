@@ -14,6 +14,12 @@ import {
 //
 import DefaultControls from './defaultSettings/default-controls'
 //
+import {
+  ALIGN_LEFT,
+  ALIGN_CENTER,
+  ALIGN_RIGHT
+} from './constants'
+//
 import merge from './lib/merge.js'
 import styles from './draft-text.style'
 import Draft, {
@@ -42,9 +48,9 @@ import './draft-vendor/draft-editor.css'
 
 const getBlockStyle = (block) => {
   switch (block.getType()) {
-    case 'align-left': return 'custon-align-left';
-    case 'align-center': return 'custon-align-center';
-    case 'align-right': return 'custon-align-right';
+    case ALIGN_LEFT: return 'custon-align-left';
+    case ALIGN_CENTER: return 'custon-align-center';
+    case ALIGN_RIGHT: return 'custon-align-right';
     default: return null;
   }
 }

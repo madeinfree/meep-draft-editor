@@ -52,7 +52,6 @@ const editorSetting = {
 render(
   <MeepDraftEditor
     onEditorChange={(state) => {
-      // console.log(JSON.stringify(state.getResult))
       console.log(state.getEditorState.toJS())
     }}
     editorStyle={editorStyle}
