@@ -13,6 +13,7 @@ import {
 } from './defaultControls/index.react';
 //
 import DefaultControls from './defaultSettings/default-controls'
+import DefaultControlsComponents from './defaultControls/default-controls-components.react'
 //
 import {
   ALIGN_LEFT,
@@ -105,17 +106,13 @@ export default class DraftText extends Component {
     //
     this.defaultSetting = {
       placeholder: '',
-      controls: DefaultControls
+      controls: (props.setting && props.setting.customControls) ? props.setting.customControls[0] : DefaultControls
     }
     this.state = {
       editorState: EditorState.createEmpty(),
       placeholder: this.hasPlaceholder(),
     };
-    //setting defaultControls or customControls
-    if(props.setting && props.setting.customControls) {
-      this.defaultSetting.controls = props.setting.customControls[0]
-    }
-    //
+
     this.focus = (editorState) => {
       if(!editorState.getSelection().getHasFocus()) {
         this.refs.editor.focus();
@@ -205,78 +202,14 @@ export default class DraftText extends Component {
     const rootControlStyle = this.checkRootControlStyle ? (this.props.editorStyle['root-control']) : ({})
     const rootInputStyle = this.checkRootInputStyle ? (this.props.editorStyle['root-input']) : ({})
 
-    const fontFamilyControls = controls.fontFamily ? (
-      <FontFamilyControls
-        editorState={editorState}
-        customStyle={rootControlStyle}
-        onChange={this.onChange}
-      />
-    ) : null
-
-    const fontSizeControls = controls.fontSize ? (
-      <FontSizeControls
-        editorState={editorState}
-        customStyle={rootControlStyle}
-        onChange={this.onChange}
-      />
-    ) : null
-
-    const textControls = controls.text ? (
-      <TextControls
-        editorState={editorState}
-        groupControls={controls.text}
-        onChange={this.onChange}
-      />
-    ) : null
-
-    const linkControls = controls.link ? (
-      <LinkControls
-        editorState={editorState}
-        groupControls={controls.link}
-        onChange={this.onChange}
-      />
-    ) : null
-
-    const blockControls = controls.block ? (
-      <BlockControls
-        editorState={editorState}
-        groupControls={controls.block}
-        onChange={this.onChange}
-      />
-    ) : null
-
-    const colorControls = controls.color ? (
-      <ColorControls
-        editorState={editorState}
-        onChange={this.onChange}
-      />
-    ) : null
-
-    const backgrounControls = controls.background ? (
-      <BackgroundControls
-        editorState={editorState}
-        onChange={this.onChange}
-      />
-    ) : null
-
-    const contentControls = controls.content ? (
-      <ContentControls
-        editorState={editorState}
-        groupControls={controls.content}
-        onChange={this.onChange}
-      />
-    ) : null
-
-    const controlsComponentEditor = this.props.readOnly ? null : (
+    const controlsComponentEditor= this.props.readOnly ? null : (
       <div>
-        {fontFamilyControls}
-        {fontSizeControls}
-        {textControls}
-        {linkControls}
-        {blockControls}
-        {colorControls}
-        {backgrounControls}
-        {contentControls}
+        <DefaultControlsComponents
+          editorState={this.getState()}
+          onChange={this.onChange}
+          readOnly={this.props.readOnly}
+          controls={controls}
+        />
       </div>
     )
 
