@@ -1,16 +1,8 @@
 import React, { PropTypes, Component } from 'react';
-import ReactDOM from 'react-dom';
-// components load
-import {
-  FontFamilyControls,
-  FontSizeControls,
-  TextControls,
-  LinkControls,
-  BlockControls,
-  ColorControls,
-  BackgroundControls,
-  ContentControls
-} from './defaultControls/index.react';
+//css
+import './draft-vendor/draft-text.css'
+import './draft-vendor/draft-editor.css'
+import styles from './draft-text.style'
 //
 import DefaultControls from './defaultSettings/default-controls'
 import DefaultControlsComponents from './defaultControls/default-controls-components.react'
@@ -20,21 +12,18 @@ import {
   ALIGN_CENTER,
   ALIGN_RIGHT
 } from './constants'
-//
+//util
 import merge from './lib/merge.js'
-import styles from './draft-text.style'
+//draft-js
 import Draft, {
   Editor,
   EditorState,
-  Modifier,
-  RichUtils,
   convertToRaw,
   convertFromRaw,
   Entity,
   CompositeDecorator,
-  ContentState,
-  SelectionState,
-  CharacterMetadata } from 'draft-js';
+  ContentState
+} from 'draft-js';
 //custom-core
 import {
   FONTSIZE,
@@ -43,9 +32,6 @@ import {
   ALIGN,
   FONTFAMILY
 } from './draft-custom-core/custom'
-
-import './draft-vendor/draft-text.css'
-import './draft-vendor/draft-editor.css'
 
 const getBlockStyle = (block) => {
   switch (block.getType()) {
@@ -82,11 +68,20 @@ const DraftTextHandlers = {
   getState() {
     return this.state.editorState;
   },
-  getConvertToRaw() {
-    return convertToRaw(this.getState().getCurrentContent());
+  getConvertToRaw(EditorChange) {
+    return EditorChange(convertToRaw(this.getContent()));
+  },
+  getContent() {
+    return this.getState().getCurrentContent();
   },
   getDefaultControls() {
     return (this.props.setting && this.props.setting.customControls) ? this.props.setting.customControls[0] : DefaultControls
+  },
+  getPlaceHolder() {
+    return this.getReadOnly() ? null : this.props.placeholder
+  },
+  getReadOnly() {
+    return (this.props.readOnly === true) ? true : false;
   }
 }
 
@@ -121,23 +116,10 @@ export default class DraftText extends Component {
     //
     this.onBlur = (e, editorState) => {
       if(this.props.onEditorChange) {
-        this.stateCache(this.props.onEditorChange)
+        return this.getConvertToRaw(this.props.onEditorChange)
       }
     }
-    //
-    this.stateCache = (EditorChange) => {
-      EditorChange(this.getConvertToRaw());
-    }
-    //
 
-
-    this.logState = () => {
-      const content = this.state.editorState.getCurrentContent();
-      console.log(convertToRaw(content))
-    }
-    this.logClear = () => {
-      console.clear()
-    }
   }
 
   componentWillMount() {
@@ -171,16 +153,20 @@ export default class DraftText extends Component {
     })
   }
 
-  isReadOnly() {
-    return (this.props.readOnly === true) ? true : false;
-  }
-
   render() {
-    const {editorState} = this.state;
+    const {
+       editorState
+    } = this.state;
 
     const {
-      controls
+      readOnly
     } = this.props
+
+    const {
+      onChange,
+      onBlur,
+      getPlaceHolder
+    } = this;
 
     if(this.props.editorStyle !== undefined) {
       this.checkRootStyle = () => {
@@ -222,12 +208,10 @@ export default class DraftText extends Component {
             {...this.props}
             customStyleMap={merge(COLORS, BACKGROUNDCOLORS, ALIGN, FONTSIZE, FONTFAMILY)}
             editorState={editorState}
-            readOnly={this.props.readOnly}
-            onChange={this.onChange}
-            onBlur={(e) => {
-              this.onBlur(e, editorState)
-            }}
-            placeholder={this.isReadOnly() ? null : this.props.placeholder}
+            readOnly={readOnly}
+            onChange={onChange}
+            onBlur={onBlur}
+            placeholder={getPlaceHolder}
             blockStyleFn={getBlockStyle}
             ref="editor"
             suppressContentEditableWarning={false}
