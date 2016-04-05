@@ -8,23 +8,28 @@ export default class StyleButton extends Component {
     super(props);
     this.onToggle = (e) => {
       e.preventDefault();
-      this.props.onToggle(this.props.style);
+      this.props.onToggle(this.props.editorStyle);
     };
   }
   render() {
-    let style;
-    let labelColor;
+
+    const {
+      style
+    } = this.props;
+
+    let labelColor, defaultStyle;
+
     if (this.props.active) {
-      style = styles.meepEditorActiveButton;
+      defaultStyle = styles.meepEditorActiveButton;
       labelColor = '#437A82'
     } else {
-      style = styles.styleButton;
+      defaultStyle = style
       labelColor = '#59bcc9'
     }
 
     return (
       <span
-        style={merge(style, styles.meepEditorDefaultButton)}
+        style={merge(styles.meepEditorDefaultButton, defaultStyle)}
         labelColor={labelColor}
         onMouseDown={this.onToggle}
       >

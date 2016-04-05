@@ -21,7 +21,8 @@ export default class DefaultControlsComponents extends Component {
       editorState,
       onChange,
       controls,
-      readOnly
+      readOnly,
+      defaultStyle
     } = this.props
 
     const fontFamilyControls = controls.fontFamily ? (
@@ -43,6 +44,7 @@ export default class DefaultControlsComponents extends Component {
         editorState={editorState}
         groupControls={controls.text}
         onChange={onChange}
+        style={defaultStyle}
       />
     ) : null
 
@@ -59,6 +61,7 @@ export default class DefaultControlsComponents extends Component {
         editorState={editorState}
         groupControls={controls.block}
         onChange={onChange}
+        style={defaultStyle}
       />
     ) : null
 

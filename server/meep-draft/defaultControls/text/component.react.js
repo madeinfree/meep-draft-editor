@@ -28,7 +28,8 @@ import {
 const TextControls = (props) => {
   const currentStyle = props.editorState.getCurrentInlineStyle();
   const {
-    groupControls
+    groupControls,
+    style
   } = props
 
   const _toggleInlineStyle = (inlineStyle) => {
@@ -49,15 +50,18 @@ const TextControls = (props) => {
         key={`text_button_${index}`}
         active={currentStyle.has(type.style)}
         label={<i className={type.label}></i>}
-        style={type.style}
+        editorStyle={type.style}
+        style={style}
         onToggle={_toggleInlineStyle}
       /> )
   }))
+
   return (
     <div
       style={
         merge(styles.controls,
               styles.meepEditorInline,
+              style
              )
       }
     >

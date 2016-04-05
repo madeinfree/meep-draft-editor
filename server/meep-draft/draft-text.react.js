@@ -1,12 +1,13 @@
 import React, { PropTypes, Component } from 'react';
 import { fromJS } from 'immutable';
 //css
-import './draft-vendor/draft-text.css'
-import './draft-vendor/draft-editor.css'
-import styles from './draft-text.style'
+import './draft-vendor/draft-text.css';
+import './draft-vendor/draft-editor.css';
+import styles from './draft-text.style';
 //
-import DefaultControls from './defaultSettings/default-controls'
-import DefaultControlsComponents from './defaultControls/default-controls-components.react'
+import DefaultControls from './defaultSettings/default-controls';
+import ToolBarControls from './defaultSettings/tool-bar-default-controls';
+import DefaultControlsComponents from './defaultControls/default-controls-components.react';
 //
 import {
   ALIGN_LEFT,
@@ -27,6 +28,7 @@ import Draft, {
 } from 'draft-js';
 //pluginEntities
 import LinkPluginEntites from './default-plugin-entites/link-entites/decorator';
+import ToolBarPluginEntites from './default-plugin-entites/tool-bar-entites/components/tool-bar.react'
 import createPluginDecorator from './default-plugin-entites/create-plugin-decorator'
 import moveSelectionToEnd from './default-plugin-entites/moveSelectionToEnd';
 //custom-core
@@ -59,6 +61,10 @@ const DraftTextHandlers = {
   },
   getDefaultControls() {
     return (this.props.setting && this.props.setting.customControls) ? this.props.setting.customControls[0] : DefaultControls
+  },
+  getToolBarControls() {
+    //this is for toolbar controls setting if use the toolbar controls
+    return ToolBarControls;
   },
   getPlaceHolder() {
     return this.getReadOnly() ? null : this.props.placeholder
@@ -192,10 +198,12 @@ export default class DraftText extends Component {
     let defaultEditorState;
 
     if(this.props.plugins) {
+      // if it's has other plugins..
       const concatPlugin = this.props.plugins.concat(LinkPluginEntites);
       createCompositeDecorator = createPluginDecorator(concatPlugin, this.getState, this.onPluginChange);
       defaultEditorState = EditorState.set(this.getState(), { decorator: createCompositeDecorator });
     } else {
+      // use the default plugins..
       const concatPlugin = [LinkPluginEntites];
       createCompositeDecorator = createPluginDecorator(concatPlugin, this.getState, this.onPluginChange);
       defaultEditorState = EditorState.set(this.getState(), { decorator: createCompositeDecorator });
@@ -209,7 +217,8 @@ export default class DraftText extends Component {
     } = this.state;
 
     const {
-      readOnly
+      readOnly,
+      setting
     } = this.props
 
     const {
@@ -234,7 +243,7 @@ export default class DraftText extends Component {
     const rootControlStyle = this.checkRootControlStyle ? (this.props.editorStyle['root-control']) : ({})
     const rootInputStyle = this.checkRootInputStyle ? (this.props.editorStyle['root-input']) : ({})
 
-    const controlsComponentEditor= this.props.readOnly ? null : (
+    const controlsComponentEditor= this.props.readOnly ? null : setting.toolBar === 'basic' ? (
       <div>
         <DefaultControlsComponents
           editorState={this.getState()}
@@ -243,7 +252,21 @@ export default class DraftText extends Component {
           controls={this.getDefaultControls()}
         />
       </div>
-    )
+    ) : null
+
+    const toolBarControlsComponent = this.props.readOnly ? null : setting.toolBar === 'float' ? (
+      <ToolBarPluginEntites
+        editorState={editorState}
+      >
+        <DefaultControlsComponents
+          editorState={this.getState()}
+          onChange={this.onChange}
+          readOnly={this.props.readOnly}
+          controls={this.getToolBarControls()}
+          defaultStyle={rootControlStyle}
+        />
+      </ToolBarPluginEntites>
+    ) : null
 
     const pluginHooks = this.props.plugins ? this.createPluginHooks() : null
 
@@ -271,6 +294,7 @@ export default class DraftText extends Component {
             spellCheck={true}
           />
         </div>
+        {toolBarControlsComponent}
       </div>
     );
   }
