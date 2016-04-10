@@ -10,6 +10,11 @@ import ToolBarControls from './defaultSettings/tool-bar-default-controls';
 import DefaultControlsComponents from './defaultControls/default-controls-components.react';
 //
 import {
+  getSelection,
+  getSelectionRect
+} from './default-plugin-entites/plugins-util/get-selection-rect';
+//
+import {
   ALIGN_LEFT,
   ALIGN_CENTER,
   ALIGN_RIGHT
@@ -100,6 +105,7 @@ export default class DraftText extends Component {
     }
     //
     this.onChange = (editorState) => {
+      if(editorState === this.state.editorState) return;
       this.setState({
         editorState,
       });
@@ -126,10 +132,13 @@ export default class DraftText extends Component {
 
   }
 
-  createHandleHooks = (methodName, plugins) => (...args) => {
+  createEventHooks = (methodName, plugins) => (...args) => {
+    console.log(this.getState);
     const newArgs = [].slice.apply(args);
-    newArgs.push(this.getEditorState);
-    newArgs.push(this.onChange);
+    newArgs.push({
+      getEditorState: this.getState,
+      setEditorState: this.onChange
+    })
     for (const plugin of plugins) {
       if (typeof plugin[methodName] !== 'function') continue;
       const result = plugin[methodName](...newArgs);
@@ -139,16 +148,12 @@ export default class DraftText extends Component {
     return false;
   };
 
-  createOnHooks = (methodName, plugins) => (event) => (
-    plugins
-      .filter((plugin) => typeof plugin[methodName] === 'function')
-      .forEach((plugin) => plugin[methodName](event))
-  );
-
   createFnHooks = (methodName, plugins) => (...args) => {
     const newArgs = [].slice.apply(args);
-    newArgs.push(this.getEditorState);
-    newArgs.push(this.onChange);
+    newArgs.push({
+      getEditorState: this.getState,
+      setEditorState: this.onChange
+    })
     for (const plugin of plugins) {
       if (typeof plugin[methodName] !== 'function') continue;
       const result = plugin[methodName](...newArgs);
@@ -160,24 +165,37 @@ export default class DraftText extends Component {
 
   createPluginHooks = () => {
     const pluginHooks = {};
+    const eventHookKyes = [];
+    const fnHookKeys = [];
     const plugins = this.resolvePlugins();
 
     plugins.forEach((plugin) => {
       Object.keys(plugin).forEach((attrName) => {
         if (attrName === 'onChange') return;
 
-        if (attrName.indexOf('on') === 0) {
-          pluginHooks[attrName] = this.createOnHooks(attrName, plugins);
+        if (eventHookKyes.indexOf(attrName) !== -1 || fnHookKeys.indexOf(attrName) !== -1) return;
+
+        const isEventHookKey = ( attrName.indexOf('on') === 0 || attrName.indexOf('handle') === 0 );
+        if(isEventHookKey) {
+          eventHookKyes.push(attrName);
+          return;
         }
 
-        if (attrName.indexOf('handle') === 0) {
-          pluginHooks[attrName] = this.createHandleHooks(attrName, plugins);
+        const isFnHookKey = ( attrName.length - 2 === attrName.indexOf('Fn') );
+        if(isFnHookKey) {
+          fnHookKeys.push(attrName);
         }
 
-        // checks if the function ends with Fn
-        if (attrName.length - 2 === attrName.indexOf('Fn')) {
+        eventHookKyes.forEach((attrName) => {
+          pluginHooks[attrName] = this.createEventHooks(attrName, plugins);
+        });
+
+        fnHookKeys.forEach((attrName) => {
           pluginHooks[attrName] = this.createFnHooks(attrName, plugins);
-        }
+        });
+
+        return pluginHooks;
+
       });
     });
     return pluginHooks;
@@ -194,21 +212,18 @@ export default class DraftText extends Component {
 
   componentWillMount() {
     let createCompositeDecorator;
-    //Default state setting
     let defaultEditorState;
 
     if(this.props.plugins) {
-      // if it's has other plugins..
-      const concatPlugin = this.props.plugins.concat(LinkPluginEntites);
+      const concatPlugin = this.props.plugins;
       createCompositeDecorator = createPluginDecorator(concatPlugin, this.getState, this.onPluginChange);
       defaultEditorState = EditorState.set(this.getState(), { decorator: createCompositeDecorator });
     } else {
-      // use the default plugins..
       const concatPlugin = [LinkPluginEntites];
       createCompositeDecorator = createPluginDecorator(concatPlugin, this.getState, this.onPluginChange);
       defaultEditorState = EditorState.set(this.getState(), { decorator: createCompositeDecorator });
     }
-    this.onChange(defaultEditorState);
+    this.onChange(moveSelectionToEnd(defaultEditorState));
   }
 
   render() {
@@ -247,20 +262,32 @@ export default class DraftText extends Component {
       <div>
         <DefaultControlsComponents
           editorState={this.getState()}
-          onChange={this.onChange}
+          onChange={onChange}
           readOnly={this.props.readOnly}
           controls={this.getDefaultControls()}
         />
       </div>
     ) : null
 
+    let rectInfo;
+    if(setting.toolBar === 'float') {
+      const rect = getSelectionRect(document.getSelection());
+      if(rect) {
+        rectInfo = {
+          left: rect.left,
+          top: rect.top
+        }
+      }
+    }
+
     const toolBarControlsComponent = this.props.readOnly ? null : setting.toolBar === 'float' ? (
       <ToolBarPluginEntites
         editorState={editorState}
+        rect={rectInfo ? rectInfo : null}
       >
         <DefaultControlsComponents
-          editorState={this.getState()}
-          onChange={this.onChange}
+          editorState={editorState}
+          onChange={onChange}
           readOnly={this.props.readOnly}
           controls={this.getToolBarControls()}
           defaultStyle={rootControlStyle}
@@ -268,8 +295,7 @@ export default class DraftText extends Component {
       </ToolBarPluginEntites>
     ) : null
 
-    const pluginHooks = this.props.plugins ? this.createPluginHooks() : null
-
+    const pluginHooks = this.props.plugins ? this.createPluginHooks() : null;
     return (
       <div style={merge(styles.root, rootStyle)}>
         { controlsComponentEditor }
@@ -290,7 +316,6 @@ export default class DraftText extends Component {
             placeholder={getPlaceHolder}
             blockStyleFn={getBlockStyle}
             ref="editor"
-            suppressContentEditableWarning={false}
             spellCheck={true}
           />
         </div>
