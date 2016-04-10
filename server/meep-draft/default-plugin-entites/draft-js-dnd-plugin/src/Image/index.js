@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import Draggable from '../components/block-draggable-wrapper';
-import Alignment from '../components/block-alignment-wrapper';
+// import Alignment from '../components/block-alignment-wrapper';
 
 class Image extends Component {
   remove = (event) => {
@@ -8,18 +8,6 @@ class Image extends Component {
     event.stopPropagation();
 
     this.props.blockProps.onRemove(this.props.block.getKey());
-  };
-
-  alignLeft = () => {
-    this.props.align('left');
-  };
-
-  alignCenter = () => {
-    this.props.align('center');
-  };
-
-  alignRight = () => {
-    this.props.align('right');
   };
 
   render() {
@@ -39,4 +27,4 @@ class Image extends Component {
   }
 }
 
-export default Draggable(Alignment(Image));
+export default Draggable(Image);
