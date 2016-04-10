@@ -8,8 +8,7 @@ import {
   SelectionState,
 } from 'draft-js';
 
-const cleanup = (editorState: Object, blockKey: String) => {
-
+const cleanup = (editorState: Object, blockKey: string) => {
   const content = editorState.getCurrentContent();
 
   // get range of the broken block
