@@ -36,6 +36,8 @@ import LinkPluginEntites from './default-plugin-entites/link-entites/decorator';
 import ToolBarPluginEntites from './default-plugin-entites/tool-bar-entites/components/tool-bar.react'
 import createPluginDecorator from './default-plugin-entites/create-plugin-decorator'
 import moveSelectionToEnd from './default-plugin-entites/moveSelectionToEnd';
+import * as defaultKeyBindingPlugin from './util/defaultKeyBindingPlugin';
+import proxies from './util/proxies';
 //custom-core
 import {
   FONTSIZE,
@@ -83,10 +85,18 @@ export default class DraftText extends Component {
 
   static defaultProps = {
     placeholder: '',
+    defaultKeyBindings: true,
+    plugins: []
   }
 
   constructor(props) {
     super(props);
+    //
+    for (const method of proxies) {
+      this[method] = (...args) => (
+        this.refs.editor[method](...args)
+      );
+    }
     //
     for(let fn in DraftTextHandlers) {
       if(typeof DraftTextHandlers[fn] === "function") {
@@ -105,7 +115,7 @@ export default class DraftText extends Component {
     }
     //
     this.onChange = (editorState) => {
-      if(editorState === this.state.editorState) return;
+      // if(editorState === this.state.editorState) return;
       this.setState({
         editorState,
       });
@@ -115,6 +125,7 @@ export default class DraftText extends Component {
       let newEditorState = editorState;
       this.props.plugins.forEach((plugin) => {
         if (plugin.onChange) {
+          console.log('change');
           newEditorState = plugin.onChange(newEditorState);
         }
       });
@@ -133,11 +144,10 @@ export default class DraftText extends Component {
   }
 
   createEventHooks = (methodName, plugins) => (...args) => {
-    console.log(this.getState);
     const newArgs = [].slice.apply(args);
     newArgs.push({
       getEditorState: this.getState,
-      setEditorState: this.onChange
+      setEditorState: this.onPluginChange
     })
     for (const plugin of plugins) {
       if (typeof plugin[methodName] !== 'function') continue;
@@ -152,7 +162,7 @@ export default class DraftText extends Component {
     const newArgs = [].slice.apply(args);
     newArgs.push({
       getEditorState: this.getState,
-      setEditorState: this.onChange
+      setEditorState: this.onPluginChange
     })
     for (const plugin of plugins) {
       if (typeof plugin[methodName] !== 'function') continue;
@@ -165,7 +175,7 @@ export default class DraftText extends Component {
 
   createPluginHooks = () => {
     const pluginHooks = {};
-    const eventHookKyes = [];
+    const eventHookKeys = [];
     const fnHookKeys = [];
     const plugins = this.resolvePlugins();
 
@@ -173,11 +183,11 @@ export default class DraftText extends Component {
       Object.keys(plugin).forEach((attrName) => {
         if (attrName === 'onChange') return;
 
-        if (eventHookKyes.indexOf(attrName) !== -1 || fnHookKeys.indexOf(attrName) !== -1) return;
+        if (eventHookKeys.indexOf(attrName) !== -1 || fnHookKeys.indexOf(attrName) !== -1) return;
 
         const isEventHookKey = ( attrName.indexOf('on') === 0 || attrName.indexOf('handle') === 0 );
         if(isEventHookKey) {
-          eventHookKyes.push(attrName);
+          eventHookKeys.push(attrName);
           return;
         }
 
@@ -186,7 +196,7 @@ export default class DraftText extends Component {
           fnHookKeys.push(attrName);
         }
 
-        eventHookKyes.forEach((attrName) => {
+        eventHookKeys.forEach((attrName) => {
           pluginHooks[attrName] = this.createEventHooks(attrName, plugins);
         });
 
@@ -206,7 +216,6 @@ export default class DraftText extends Component {
     if (this.props.defaultKeyBindings) {
       plugins.push(defaultKeyBindingPlugin);
     }
-
     return plugins;
   };
 
@@ -262,7 +271,7 @@ export default class DraftText extends Component {
       <div>
         <DefaultControlsComponents
           editorState={this.getState()}
-          onChange={onChange}
+          onChange={this.onPluginChange}
           readOnly={this.props.readOnly}
           controls={this.getDefaultControls()}
         />
@@ -287,7 +296,7 @@ export default class DraftText extends Component {
       >
         <DefaultControlsComponents
           editorState={editorState}
-          onChange={onChange}
+          onChange={this.onPluginChange}
           readOnly={this.props.readOnly}
           controls={this.getToolBarControls()}
           defaultStyle={rootControlStyle}
@@ -306,12 +315,12 @@ export default class DraftText extends Component {
           }}
         >
           <Editor
-            {...this.props}
-            {...pluginHooks}
+            { ...this.props }
+            { ...pluginHooks }
             customStyleMap={merge(COLORS, BACKGROUNDCOLORS, ALIGN, FONTSIZE, FONTFAMILY)}
             editorState={editorState}
             readOnly={readOnly}
-            onChange={onChange}
+            onChange={this.onPluginChange}
             onBlur={onBlur}
             placeholder={getPlaceHolder}
             blockStyleFn={getBlockStyle}
