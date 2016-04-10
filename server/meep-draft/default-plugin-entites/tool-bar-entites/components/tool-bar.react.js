@@ -19,7 +19,6 @@ export default class ToolBar extends Component {
   }
 
   shouldComponentUpdate(nextProps, nextState) {
-    console.log('change', nextProps.rect);
     if(this.shouldUpdate){
       this.shouldUpdate = false;
       return true;

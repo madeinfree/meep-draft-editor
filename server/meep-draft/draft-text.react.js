@@ -125,7 +125,6 @@ export default class DraftText extends Component {
       let newEditorState = editorState;
       this.props.plugins.forEach((plugin) => {
         if (plugin.onChange) {
-          console.log('change');
           newEditorState = plugin.onChange(newEditorState);
         }
       });

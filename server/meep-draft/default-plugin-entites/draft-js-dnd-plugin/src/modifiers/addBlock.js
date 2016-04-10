@@ -39,7 +39,6 @@ export default function (editorState, selection, type, data) {
   const newContentStateAfterSplit = Modifier.setBlockType(insertionTargetBlock, insertionTargetSelection, type);
 
   // creating a new ContentBlock including the entity with data
-  console.log(Entity);
   const entityKey = Entity.create(type, 'IMMUTABLE', { src: data.src, url: data.url });
   const charData = CharacterMetadata.create({ entity: entityKey });
   const fragmentArray = [

@@ -3,7 +3,6 @@ import { CompositeDecorator } from 'draft-js';
 import decorateComponentWithProps from 'decorate-component-with-props';
 
 export default (plugins, getEditorState, setEditorState) => {
-  console.log(plugins)
   const decorators = List(plugins)
     .filter((plugin) => plugin.decorators !== undefined)
     .flatMap((plugin) => plugin.decorators)
