@@ -60,7 +60,7 @@ export default function onDropFile(config) {
         // Add blocks for each image before uploading
         let state = getEditorState();
         previews.forEach(preview => {
-          state = addBlock(state, selection, 'image', { ...preview, progress: 1 });
+          state = addBlock(state, selection, 'image', { ...preview, progress: 100 });
         });
         setEditorState(state);
 

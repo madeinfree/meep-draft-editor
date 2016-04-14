@@ -56,7 +56,17 @@ const editorSetting = {
 
 const uploadPlugin = createDragDropPlugin({
   upload: (data, success, failed, progress) => {
-    console.log(1, data, 2, success, 3, progress);
+    const reader = new FileReader();
+    function doProgress(percent) {
+      progress(percent || 1);
+      if (percent >= 100) {
+        // Start reading the file
+        reader.readAsDataURL(data.files[0]);
+      } else {
+        setTimeout(doProgress, 250, (percent || 0) + 10);
+      }
+    }
+    doProgress(0);
   }
 })
 
@@ -64,7 +74,7 @@ const plugins = [uploadPlugin];
 render(
   <MeepDraftEditor
     onEditorChange={(content) => {
-      console.log(JSON.stringify(content));
+      // console.log(JSON.stringify(content));
     }}
     editorStyle={editorStyle}
     readOnly={false}

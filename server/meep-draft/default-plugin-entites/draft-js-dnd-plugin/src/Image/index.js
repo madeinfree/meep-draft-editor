@@ -14,14 +14,19 @@ class Image extends Component {
     const { blockProps, block, attachButtons, theme, alignment, onDragStart, draggable } = this.props;
     const className = `${theme.get('imageWrapper')} ${theme.get(alignment || 'center')}`;
     const fixedBlockUrl = blockProps.src.split('<blockFixed>')[0];
+    const image = ( blockProps.progress !== 100 ?
+      <div style={{ backgroundColor: '#DEE476', width: `${ blockProps.progress }%`, border: '1px solid' }}>{' '}</div> :
+      <img src={fixedBlockUrl || blockProps.url} width={`${ blockProps.progress === undefined ? 100 : blockProps.progress }%`} height="auto" className={ theme.get('image') } />
+    )
     return (
-        <figure className={ className }
+        <figure
+          className={ className }
           contentEditable={false}
           data-offset-key={ `${block.get('key')}-0-0` }
-          onDragStart={onDragStart} draggable={draggable}
+          onDragStart={onDragStart}
+          draggable={draggable}
         >
-          <img src={fixedBlockUrl || blockProps.url} width="100%" height="auto" className={ theme.get('image') } />
-          {blockProps.progress >= 0 ? <div className={theme.get('imageLoader')} style={{ width: `${100 - blockProps.progress}%` }} /> : null}
+          {image}
         </figure>
     );
   }
