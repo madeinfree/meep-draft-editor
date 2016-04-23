@@ -20,12 +20,14 @@
   "dependencies": {
     "camelcase": "^2.1.1",
     "decorate-component-with-props": "^1.0.2",
-    "draft-js": "^0.3.0",
-    "draft-js-hashtag-plugin": "0.0.4",
+    "draft-js": "^0.5.0",
+    "find-with-regex": "^1.0.2",
     "font-awesome": "^4.5.0",
-    "immutable": "^3.7.6",
-    "react": "^0.14.7",
-    "react-dom": "^0.14.7"
+    "immutable": "^3.8.1",
+    "react": "^15.0.0",
+    "react-dom": "^15.0.0",
+    "react-portal": "^2.1.0",
+    "union-class-names": "^1.0.0"
   },
   "devDependencies": {
     "babel-cli": "^6.6.0",

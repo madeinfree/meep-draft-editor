@@ -1,12 +1,19 @@
 import React, { PropTypes, Component } from 'react';
+import Im from 'immutable';
 import { fromJS } from 'immutable';
 //css
-import './draft-vendor/draft-text.css'
-import './draft-vendor/draft-editor.css'
-import styles from './draft-text.style'
+import './draft-vendor/draft-text.css';
+import './draft-vendor/draft-editor.css';
+import styles from './draft-text.style';
 //
-import DefaultControls from './defaultSettings/default-controls'
-import DefaultControlsComponents from './defaultControls/default-controls-components.react'
+import DefaultControls from './defaultSettings/default-controls';
+import ToolBarControls from './defaultSettings/tool-bar-default-controls';
+import DefaultControlsComponents from './defaultControls/default-controls-components.react';
+//
+import {
+  getSelection,
+  getSelectionRect
+} from './default-plugin-entites/plugins-util/get-selection-rect';
 //
 import {
   ALIGN_LEFT,
@@ -23,12 +30,17 @@ import Draft, {
   convertFromRaw,
   Entity,
   CompositeDecorator,
-  ContentState
+  ContentState,
+  SelectionState,
+  Modifier
 } from 'draft-js';
 //pluginEntities
 import LinkPluginEntites from './default-plugin-entites/link-entites/decorator';
+import ToolBarPluginEntites from './default-plugin-entites/tool-bar-entites/components/tool-bar.react'
 import createPluginDecorator from './default-plugin-entites/create-plugin-decorator'
 import moveSelectionToEnd from './default-plugin-entites/moveSelectionToEnd';
+import * as defaultKeyBindingPlugin from './util/defaultKeyBindingPlugin';
+import proxies from './util/proxies';
 //custom-core
 import {
   FONTSIZE,
@@ -60,6 +72,10 @@ const DraftTextHandlers = {
   getDefaultControls() {
     return (this.props.setting && this.props.setting.customControls) ? this.props.setting.customControls[0] : DefaultControls
   },
+  getToolBarControls() {
+    //this is for toolbar controls setting if use the toolbar controls
+    return ToolBarControls;
+  },
   getPlaceHolder() {
     return this.getReadOnly() ? null : this.props.placeholder
   },
@@ -72,10 +88,18 @@ export default class DraftText extends Component {
 
   static defaultProps = {
     placeholder: '',
+    defaultKeyBindings: true,
+    plugins: []
   }
 
   constructor(props) {
     super(props);
+    //
+    for (const method of proxies) {
+      this[method] = (...args) => (
+        this.refs.editor[method](...args)
+      );
+    }
     //
     for(let fn in DraftTextHandlers) {
       if(typeof DraftTextHandlers[fn] === "function") {
@@ -84,7 +108,13 @@ export default class DraftText extends Component {
     }
 
     this.state = {
-      editorState: this.props.defaultValue ? EditorState.createWithContent(ContentState.createFromBlockArray(Draft.convertFromRaw(this.props.defaultValue))) : EditorState.createEmpty()
+      editorState: this.props.defaultValue ? EditorState.createWithContent(ContentState.createFromBlockArray(Draft.convertFromRaw(this.props.defaultValue))) : EditorState.createEmpty(),
+      openState: Im.fromJS({
+        fontFamily: false,
+        fontSize: false,
+        fontColor: false,
+        fontBackground: false
+      })
     };
 
     this.focus = (editorState) => {
@@ -112,18 +142,36 @@ export default class DraftText extends Component {
       }
     }
     //
-    this.onBlur = (e, editorState) => {
+    this.onBlur = (e) => {
+      //  e.preventDefault();
       if(this.props.onEditorChange) {
         return this.getConvertToRaw(this.props.onEditorChange)
       }
     }
+    //
+    this.toggleOpenState = (key) => {
+      let openState = this.state.openState;
+      openState.forEach((state, k) => {
+        console.log(k);
+         if(k === key) {
+           openState = openState.setIn([k], !openState.getIn([k]));
+         } else {
+           openState = openState.setIn([k], false);
+         }
+      })
+      this.setState({
+        openState: openState
+      })
+    }
 
   }
 
-  createHandleHooks = (methodName, plugins) => (...args) => {
+  createEventHooks = (methodName, plugins) => (...args) => {
     const newArgs = [].slice.apply(args);
-    newArgs.push(this.getEditorState);
-    newArgs.push(this.onChange);
+    newArgs.push({
+      getEditorState: this.getState,
+      setEditorState: this.onPluginChange
+    })
     for (const plugin of plugins) {
       if (typeof plugin[methodName] !== 'function') continue;
       const result = plugin[methodName](...newArgs);
@@ -133,16 +181,12 @@ export default class DraftText extends Component {
     return false;
   };
 
-  createOnHooks = (methodName, plugins) => (event) => (
-    plugins
-      .filter((plugin) => typeof plugin[methodName] === 'function')
-      .forEach((plugin) => plugin[methodName](event))
-  );
-
   createFnHooks = (methodName, plugins) => (...args) => {
     const newArgs = [].slice.apply(args);
-    newArgs.push(this.getEditorState);
-    newArgs.push(this.onChange);
+    newArgs.push({
+      getEditorState: this.getState,
+      setEditorState: this.onPluginChange
+    })
     for (const plugin of plugins) {
       if (typeof plugin[methodName] !== 'function') continue;
       const result = plugin[methodName](...newArgs);
@@ -154,24 +198,37 @@ export default class DraftText extends Component {
 
   createPluginHooks = () => {
     const pluginHooks = {};
+    const eventHookKeys = [];
+    const fnHookKeys = [];
     const plugins = this.resolvePlugins();
 
     plugins.forEach((plugin) => {
       Object.keys(plugin).forEach((attrName) => {
         if (attrName === 'onChange') return;
 
-        if (attrName.indexOf('on') === 0) {
-          pluginHooks[attrName] = this.createOnHooks(attrName, plugins);
+        if (eventHookKeys.indexOf(attrName) !== -1 || fnHookKeys.indexOf(attrName) !== -1) return;
+
+        const isEventHookKey = ( attrName.indexOf('on') === 0 || attrName.indexOf('handle') === 0 );
+        if(isEventHookKey) {
+          eventHookKeys.push(attrName);
+          return;
         }
 
-        if (attrName.indexOf('handle') === 0) {
-          pluginHooks[attrName] = this.createHandleHooks(attrName, plugins);
+        const isFnHookKey = ( attrName.length - 2 === attrName.indexOf('Fn') );
+        if(isFnHookKey) {
+          fnHookKeys.push(attrName);
         }
 
-        // checks if the function ends with Fn
-        if (attrName.length - 2 === attrName.indexOf('Fn')) {
+        eventHookKeys.forEach((attrName) => {
+          pluginHooks[attrName] = this.createEventHooks(attrName, plugins);
+        });
+
+        fnHookKeys.forEach((attrName) => {
           pluginHooks[attrName] = this.createFnHooks(attrName, plugins);
-        }
+        });
+
+        return pluginHooks;
+
       });
     });
     return pluginHooks;
@@ -182,17 +239,15 @@ export default class DraftText extends Component {
     if (this.props.defaultKeyBindings) {
       plugins.push(defaultKeyBindingPlugin);
     }
-
     return plugins;
   };
 
   componentWillMount() {
     let createCompositeDecorator;
-    //Default state setting
     let defaultEditorState;
 
     if(this.props.plugins) {
-      const concatPlugin = this.props.plugins.concat(LinkPluginEntites);
+      const concatPlugin = this.props.plugins;
       createCompositeDecorator = createPluginDecorator(concatPlugin, this.getState, this.onPluginChange);
       defaultEditorState = EditorState.set(this.getState(), { decorator: createCompositeDecorator });
     } else {
@@ -200,16 +255,18 @@ export default class DraftText extends Component {
       createCompositeDecorator = createPluginDecorator(concatPlugin, this.getState, this.onPluginChange);
       defaultEditorState = EditorState.set(this.getState(), { decorator: createCompositeDecorator });
     }
-    this.onChange(defaultEditorState);
+    this.onChange(moveSelectionToEnd(defaultEditorState));
   }
 
   render() {
     const {
-       editorState
+       editorState,
+       openState
     } = this.state;
 
     const {
-      readOnly
+      readOnly,
+      setting
     } = this.props
 
     const {
@@ -234,19 +291,49 @@ export default class DraftText extends Component {
     const rootControlStyle = this.checkRootControlStyle ? (this.props.editorStyle['root-control']) : ({})
     const rootInputStyle = this.checkRootInputStyle ? (this.props.editorStyle['root-input']) : ({})
 
-    const controlsComponentEditor= this.props.readOnly ? null : (
+    const controlsComponentEditor= this.props.readOnly ? null : setting.toolBar === 'basic' ? (
       <div>
         <DefaultControlsComponents
           editorState={this.getState()}
-          onChange={this.onChange}
+          onChange={this.onPluginChange}
+          openState={ openState }
           readOnly={this.props.readOnly}
           controls={this.getDefaultControls()}
+          toggleOpenState={ this.toggleOpenState }
         />
       </div>
-    )
+    ) : null
 
-    const pluginHooks = this.props.plugins ? this.createPluginHooks() : null
+    let rectInfo;
+    let oldRect;
+    if(setting.toolBar === 'float') {
+      const rect = getSelectionRect(document.getSelection());
+      if(rect) {
+        rectInfo = {
+          left: rect.left,
+          top: rect.top
+        }
+        oldRect = rectInfo;
+      }
+    }
 
+    const toolBarControlsComponent = this.props.readOnly ? null : setting.toolBar === 'float' ? (
+      <ToolBarPluginEntites
+        editorState={editorState}
+        rect={rectInfo ? rectInfo : null}
+      >
+        <DefaultControlsComponents
+          editorState={editorState}
+          openState={ openState }
+          onChange={this.onPluginChange}
+          readOnly={this.props.readOnly}
+          controls={this.getToolBarControls()}
+          defaultStyle={rootControlStyle}
+        />
+      </ToolBarPluginEntites>
+    ) : null
+
+    const pluginHooks = this.props.plugins ? this.createPluginHooks() : null;
     return (
       <div style={merge(styles.root, rootStyle)}>
         { controlsComponentEditor }
@@ -257,20 +344,20 @@ export default class DraftText extends Component {
           }}
         >
           <Editor
-            {...this.props}
-            {...pluginHooks}
-            customStyleMap={merge(COLORS, BACKGROUNDCOLORS, ALIGN, FONTSIZE, FONTFAMILY)}
-            editorState={editorState}
-            readOnly={readOnly}
-            onChange={onChange}
-            onBlur={onBlur}
-            placeholder={getPlaceHolder}
-            blockStyleFn={getBlockStyle}
+            { ...this.props }
+            { ...pluginHooks }
+            customStyleMap={ merge(COLORS, BACKGROUNDCOLORS, ALIGN, FONTSIZE, FONTFAMILY) }
+            editorState={ editorState }
+            readOnly={ readOnly }
+            onChange={ this.onPluginChange }
+            onBlur={ onBlur }
+            placeholder={ getPlaceHolder }
+            blockStyleFn={ getBlockStyle }
             ref="editor"
-            suppressContentEditableWarning={false}
-            spellCheck={true}
+            spellCheck={ false }
           />
         </div>
+        { toolBarControlsComponent }
       </div>
     );
   }

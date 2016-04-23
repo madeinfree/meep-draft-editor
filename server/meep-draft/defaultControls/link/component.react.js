@@ -64,7 +64,7 @@ const LinkControls = (props) => {
   groupControls.set ? links.push(
     <span
       key={`link-2`}
-      style={merge(styles.meepEditorDefaultColor, styles.meepEditorDefaultButton)}
+      style={merge(styles.meepEditorDefaultButton)}
       onClick={(e) => {
         _onHandlLink(e, 'addLink')
       }}
@@ -76,7 +76,7 @@ const LinkControls = (props) => {
   groupControls.unset ? links.push(
     <span
       key={`link-1`}
-      style={merge(styles.meepEditorDefaultColor, styles.meepEditorDefaultButton)}
+      style={merge(styles.meepEditorDefaultButton)}
       onClick={(e) => {
         _onHandlLink(e, 'removeLink')
       }}

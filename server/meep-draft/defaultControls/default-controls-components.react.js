@@ -21,13 +21,18 @@ export default class DefaultControlsComponents extends Component {
       editorState,
       onChange,
       controls,
-      readOnly
+      readOnly,
+      defaultStyle,
+      openState,
+      toggleOpenState
     } = this.props
 
     const fontFamilyControls = controls.fontFamily ? (
       <FontFamilyControls
         editorState={editorState}
         onChange={onChange}
+        openState={ openState }
+        toggleOpenState={ toggleOpenState }
       />
     ) : null
 
@@ -35,6 +40,8 @@ export default class DefaultControlsComponents extends Component {
       <FontSizeControls
         editorState={editorState}
         onChange={onChange}
+        openState={ openState }
+        toggleOpenState={ toggleOpenState }
       />
     ) : null
 
@@ -43,6 +50,7 @@ export default class DefaultControlsComponents extends Component {
         editorState={editorState}
         groupControls={controls.text}
         onChange={onChange}
+        style={defaultStyle}
       />
     ) : null
 
@@ -59,6 +67,7 @@ export default class DefaultControlsComponents extends Component {
         editorState={editorState}
         groupControls={controls.block}
         onChange={onChange}
+        style={defaultStyle}
       />
     ) : null
 
@@ -66,6 +75,8 @@ export default class DefaultControlsComponents extends Component {
       <ColorControls
         editorState={editorState}
         onChange={onChange}
+        openState={ openState }
+        toggleOpenState={ toggleOpenState }
       />
     ) : null
 
@@ -73,6 +84,8 @@ export default class DefaultControlsComponents extends Component {
       <BackgroundControls
         editorState={editorState}
         onChange={onChange}
+        openState={ openState }
+        toggleOpenState={ toggleOpenState }
       />
     ) : null
 

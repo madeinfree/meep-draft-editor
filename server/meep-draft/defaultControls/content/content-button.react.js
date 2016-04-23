@@ -10,7 +10,7 @@ export default class ContentButton extends Component {
   render() {
     return (
       <span
-        style={merge(styles.meepEditorDefaultColor, styles.meepEditorDefaultButton)}
+        style={merge(styles.meepEditorDefaultButton)}
         onMouseDown={() => {
           this.props.onDoHandle(this.props.editorState, this.props.doAction)
         }}

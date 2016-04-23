@@ -34,14 +34,12 @@ export default class FontSizeControls extends Component {
   constructor(props, context) {
     super(props, context);
 
-    this.state = {
-      onOpen: false,
-    }
+    const {
+      toggleOpenState
+    } = this.props;
 
     this._onOpen = () => {
-      this.setState({
-        onOpen: !this.state.onOpen
-      })
+      toggleOpenState('fontSize');
     }
   }
 
@@ -96,7 +94,7 @@ export default class FontSizeControls extends Component {
         )
       })
     )
-    let items = this.state.onOpen ? (
+    let items = this.props.openState.toJS().fontSize ? (
       <div
         style={styles.meepEditorSelectItemBox}
       >
@@ -111,7 +109,7 @@ export default class FontSizeControls extends Component {
         <div
           style={merge(styles.meepEditorSelectMainBox,
                        customControlStyle,
-                       this.state.onOpen?styles.meepEditorSelectMainBoxOpen:{})}
+                       this.props.openState.toJS().fontSize ? styles.meepEditorSelectMainBoxOpen : {})}
         >
           <div
             onClick={this._onOpen}

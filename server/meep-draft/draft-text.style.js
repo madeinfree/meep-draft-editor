@@ -7,7 +7,7 @@ export default new Styles({
     fontSize: '14px',
   },
   editor: {
-    border: '1px solid #59bcc9',
+    border: '1px solid #000',
     fontSize: '16px',
     fontFamily: "'Inconsolata', 'Menlo', 'Consolas', monospace",
     fontSize: '16px',
@@ -16,7 +16,6 @@ export default new Styles({
   controls: {
     fontFamily: '\'Helvetica\', sans-serif',
     fontSize: 14,
-    marginBottom: 10,
     userSelect: 'none',
   },
   styleButton: {
@@ -41,10 +40,10 @@ export default new Styles({
     textAlign: 'center',
   },
   meepEditorActiveButton: {
-    color: '#437A82',
+    color: '#8E8E8E',
   },
   meepEditorActionSelect: {
-    color: '#59bcc9',
+    color: '#000',
   },
   meepEditorLink: {
     cursor: 'pointer',
@@ -81,12 +80,11 @@ export default new Styles({
   meepEditorSelectMainBox: {
     position: 'relative',
     cursor: 'pointer',
-    color: '#59bcc9',
     height: '100%',
   },
   meepEditorSelectMainBoxOpen: {
     borderColor: '#437A82',
-    color: '#437A82',
+    color: '#ccc',
     zIndex: 1001,
   },
   meepEditorSelectItemBox: {

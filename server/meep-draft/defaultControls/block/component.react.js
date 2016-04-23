@@ -29,7 +29,8 @@ const BlockControls = (props) => {
   let {
     editorState,
     groupControls,
-    onChange
+    onChange,
+    style
   } = props
 
   const _toggleAlign = (align) => {
@@ -77,7 +78,8 @@ const BlockControls = (props) => {
         key={`block_button_${index}`}
         active={type.style === blockType}
         label={<i className={type.label}></i>}
-        style={type.style}
+        editorStyle={type.style}
+        style={style}
         onToggle={_toggleBlockType}
       /> )
   }))
