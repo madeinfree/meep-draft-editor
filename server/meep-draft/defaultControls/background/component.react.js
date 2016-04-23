@@ -33,14 +33,12 @@ export default class BackgroundControls extends Component {
   constructor(props, context) {
     super(props, context);
 
-    this.state = {
-      isOpen: false
-    }
+    const {
+      toggleOpenState
+    } = this.props;
 
     this._onOpen = () => {
-      this.setState({
-        isOpen: !this.state.isOpen
-      })
+      toggleOpenState('fontBackground');
     }
   }
 
@@ -81,7 +79,7 @@ export default class BackgroundControls extends Component {
       editorState
     } = this.props
     let currentStyle = editorState.getCurrentInlineStyle();
-    let button = this.state.isOpen ? (BACKGROUNDCOLORSTYLE.map((type, idx) => {
+    let button = this.props.openState.toJS().fontBackground ? (BACKGROUNDCOLORSTYLE.map((type, idx) => {
       return (
         <BackgroundButton
           key={`background_button_${idx}`}

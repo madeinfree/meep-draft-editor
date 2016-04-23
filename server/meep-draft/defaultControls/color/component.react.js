@@ -33,14 +33,12 @@ export default class ColorControls extends Component {
   constructor(props, context) {
     super(props, context);
 
-    this.state = {
-      isOpen: false
-    }
+    const {
+      toggleOpenState
+    } = this.props;
 
     this._onOpen = () => {
-      this.setState({
-        isOpen: !this.state.isOpen
-      })
+      toggleOpenState('fontColor');
     }
   }
 
@@ -80,7 +78,7 @@ export default class ColorControls extends Component {
       editorState
     } = this.props
     let currentStyle = editorState.getCurrentInlineStyle();
-    let button = this.state.isOpen ? (COLORSTYLE.map((type, idx) => {
+    let button = this.props.openState.toJS().fontColor ? (COLORSTYLE.map((type, idx) => {
       return (
         <ColorButton
           key={`color_button_${idx}`}

@@ -1,4 +1,5 @@
 import React, { PropTypes, Component } from 'react';
+import Im from 'immutable';
 import { fromJS } from 'immutable';
 //css
 import './draft-vendor/draft-text.css';
@@ -29,7 +30,9 @@ import Draft, {
   convertFromRaw,
   Entity,
   CompositeDecorator,
-  ContentState
+  ContentState,
+  SelectionState,
+  Modifier
 } from 'draft-js';
 //pluginEntities
 import LinkPluginEntites from './default-plugin-entites/link-entites/decorator';
@@ -105,7 +108,13 @@ export default class DraftText extends Component {
     }
 
     this.state = {
-      editorState: this.props.defaultValue ? EditorState.createWithContent(ContentState.createFromBlockArray(Draft.convertFromRaw(this.props.defaultValue))) : EditorState.createEmpty()
+      editorState: this.props.defaultValue ? EditorState.createWithContent(ContentState.createFromBlockArray(Draft.convertFromRaw(this.props.defaultValue))) : EditorState.createEmpty(),
+      openState: Im.fromJS({
+        fontFamily: false,
+        fontSize: false,
+        fontColor: false,
+        fontBackground: false
+      })
     };
 
     this.focus = (editorState) => {
@@ -115,7 +124,6 @@ export default class DraftText extends Component {
     }
     //
     this.onChange = (editorState) => {
-      // if(editorState === this.state.editorState) return;
       this.setState({
         editorState,
       });
@@ -134,10 +142,26 @@ export default class DraftText extends Component {
       }
     }
     //
-    this.onBlur = (e, editorState) => {
+    this.onBlur = (e) => {
+      //  e.preventDefault();
       if(this.props.onEditorChange) {
         return this.getConvertToRaw(this.props.onEditorChange)
       }
+    }
+    //
+    this.toggleOpenState = (key) => {
+      let openState = this.state.openState;
+      openState.forEach((state, k) => {
+        console.log(k);
+         if(k === key) {
+           openState = openState.setIn([k], !openState.getIn([k]));
+         } else {
+           openState = openState.setIn([k], false);
+         }
+      })
+      this.setState({
+        openState: openState
+      })
     }
 
   }
@@ -236,7 +260,8 @@ export default class DraftText extends Component {
 
   render() {
     const {
-       editorState
+       editorState,
+       openState
     } = this.state;
 
     const {
@@ -271,13 +296,16 @@ export default class DraftText extends Component {
         <DefaultControlsComponents
           editorState={this.getState()}
           onChange={this.onPluginChange}
+          openState={ openState }
           readOnly={this.props.readOnly}
           controls={this.getDefaultControls()}
+          toggleOpenState={ this.toggleOpenState }
         />
       </div>
     ) : null
 
     let rectInfo;
+    let oldRect;
     if(setting.toolBar === 'float') {
       const rect = getSelectionRect(document.getSelection());
       if(rect) {
@@ -285,6 +313,7 @@ export default class DraftText extends Component {
           left: rect.left,
           top: rect.top
         }
+        oldRect = rectInfo;
       }
     }
 
@@ -295,6 +324,7 @@ export default class DraftText extends Component {
       >
         <DefaultControlsComponents
           editorState={editorState}
+          openState={ openState }
           onChange={this.onPluginChange}
           readOnly={this.props.readOnly}
           controls={this.getToolBarControls()}
@@ -316,18 +346,18 @@ export default class DraftText extends Component {
           <Editor
             { ...this.props }
             { ...pluginHooks }
-            customStyleMap={merge(COLORS, BACKGROUNDCOLORS, ALIGN, FONTSIZE, FONTFAMILY)}
-            editorState={editorState}
-            readOnly={readOnly}
-            onChange={this.onPluginChange}
-            onBlur={onBlur}
-            placeholder={getPlaceHolder}
-            blockStyleFn={getBlockStyle}
+            customStyleMap={ merge(COLORS, BACKGROUNDCOLORS, ALIGN, FONTSIZE, FONTFAMILY) }
+            editorState={ editorState }
+            readOnly={ readOnly }
+            onChange={ this.onPluginChange }
+            onBlur={ onBlur }
+            placeholder={ getPlaceHolder }
+            blockStyleFn={ getBlockStyle }
             ref="editor"
-            spellCheck={true}
+            spellCheck={ false }
           />
         </div>
-        {toolBarControlsComponent}
+        { toolBarControlsComponent }
       </div>
     );
   }

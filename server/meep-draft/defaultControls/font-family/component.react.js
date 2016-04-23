@@ -34,14 +34,12 @@ export default class FontFamilyControls extends Component {
   constructor(props, context) {
     super(props, context);
 
-    this.state = {
-      onOpen: false
-    }
+    const {
+      toggleOpenState
+    } = this.props;
 
     this._onOpen = () => {
-      this.setState({
-        onOpen: !this.state.onOpen
-      })
+      toggleOpenState('fontFamily');
     }
   }
 
@@ -77,6 +75,7 @@ export default class FontFamilyControls extends Component {
   }
 
   render() {
+    console.log(this.props.openState.toJS().fontFamily);
     let currentStyle = this.props.editorState.getCurrentInlineStyle();
     let fontFamily = 'Arial';
     let itemMap = (
@@ -96,7 +95,7 @@ export default class FontFamilyControls extends Component {
           )
       })
     )
-    let items = this.state.onOpen ? (
+    let items = this.props.openState.toJS().fontFamily ? (
       <div
         style={styles.meepEditorSelectItemBox}
       >
@@ -114,7 +113,7 @@ export default class FontFamilyControls extends Component {
         <div
           style={merge(styles.meepEditorSelectMainBox,
                        customControlStyle,
-                       this.state.onOpen?styles.meepEditorSelectMainBoxOpen:null)}
+                       this.props.openState.toJS().fontFamily?styles.meepEditorSelectMainBoxOpen:null)}
         >
           <div
             onClick={this._onOpen}
