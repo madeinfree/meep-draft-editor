@@ -89,7 +89,10 @@ export default class DraftText extends Component {
   static defaultProps = {
     placeholder: '',
     defaultKeyBindings: true,
-    plugins: []
+    plugins: [],
+    setting: {
+      toolBar: 'basic'
+    }
   }
 
   constructor(props) {
@@ -246,9 +249,9 @@ export default class DraftText extends Component {
   componentWillMount() {
     let createCompositeDecorator;
     let defaultEditorState;
-
     if(this.props.plugins) {
-      const concatPlugin = this.props.plugins;
+      this.props.setting.toolBar = this.props.setting.toolBar ? this.props.setting.toolBar : 'basic';
+      const concatPlugin = [LinkPluginEntites].concat(this.props.plugins);
       createCompositeDecorator = createPluginDecorator(concatPlugin, this.getState, this.onPluginChange);
       defaultEditorState = EditorState.set(this.getState(), { decorator: createCompositeDecorator });
     } else {
