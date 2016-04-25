@@ -115,10 +115,10 @@ export default new Styles({
     paddingTop: '5px',
     textAlign: 'center',
     width: '50px',
-    color: '#59bcc9',
+    color: '#000',
   },
   meepEditorSelectItemHover: {
-    color: '#000',
+    color: '#ccc',
   },
   //Family
   meepEditorSelectFamilyItem: {
@@ -131,7 +131,7 @@ export default new Styles({
     paddingBottom: '5px',
     paddingTop: '5px',
     textAlign: 'center',
-    color: '#59bcc9',
+    color: '#000',
     width: '100px',
   },
 })
