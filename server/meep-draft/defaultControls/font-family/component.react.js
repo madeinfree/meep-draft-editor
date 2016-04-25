@@ -75,7 +75,6 @@ export default class FontFamilyControls extends Component {
   }
 
   render() {
-    console.log(this.props.openState.toJS().fontFamily);
     let currentStyle = this.props.editorState.getCurrentInlineStyle();
     let fontFamily = 'Arial';
     let itemMap = (
@@ -113,7 +112,7 @@ export default class FontFamilyControls extends Component {
         <div
           style={merge(styles.meepEditorSelectMainBox,
                        customControlStyle,
-                       this.props.openState.toJS().fontFamily?styles.meepEditorSelectMainBoxOpen:null)}
+                       this.props.openState.toJS().fontFamily ? styles.meepEditorSelectMainBoxOpen : null)}
         >
           <div
             onClick={this._onOpen}

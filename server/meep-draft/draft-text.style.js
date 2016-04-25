@@ -94,7 +94,7 @@ export default new Styles({
     boxShadow: 'rgba(0,0,0,.2) 0 2px 8px',
     marginTop: '-1px',
     zIndex: 1,
-    height: '130px',
+    height: '180px',
     overflowY: 'auto'
   },
   meepEditorSelectBoxLabel: {

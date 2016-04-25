@@ -148,11 +148,12 @@ export default class DraftText extends Component {
         return this.getConvertToRaw(this.props.onEditorChange)
       }
     }
-    //
+    /*
+     * this is the method when open the tool then always close other tools first.
+     */
     this.toggleOpenState = (key) => {
       let openState = this.state.openState;
       openState.forEach((state, k) => {
-        console.log(k);
          if(k === key) {
            openState = openState.setIn([k], !openState.getIn([k]));
          } else {
