@@ -70,6 +70,7 @@ const editorStyle = {
    it can helpful expansion the controls in the future.
 */
 const editorSetting = {
+  toolBar: 'basic', //default
   customControls: [{
     fontFamily: true,
     fontSize: true,
@@ -109,6 +110,12 @@ const editorSetting = {
 
 # EVENT
 #### onEditorChange(content)
+
+# Editor Settings
+#### toolBar
+##### - 'basic' -> default
+##### - 'float'
+#### customControls
 
 # dependencies
 ```javascript
@@ -322,7 +329,7 @@ ReactDom.render(
 
     - [x] version 1.3.0rc-1  release
 
-  <2016 - 04 - 3>
+  <2016 - 04 - 03>
 
     - [x] refactor a little
 
@@ -333,6 +340,28 @@ ReactDom.render(
     - [x] version 1.3.0 release
 
     - [x] Changed README, throw out the extra state
+
+  <2016 - 04 - 05>
+
+    - [x] changed the default style way
+
+  <2016 - 04 - 10>
+
+    - [x] upgrade draft-js to 0.4.0
+
+    - [x] added editor toolbar mode
+
+    - [x] added dnd beta plugin
+
+  <2016 - 04 - xx>
+
+    - [x] upgrade draft-js to 0.5.0
+
+    - [x] upgrade react to 15.0.0
+
+  <2016 - 04 - 25>
+
+    - [x] fixed some issue
 
 # ISSUE
 
