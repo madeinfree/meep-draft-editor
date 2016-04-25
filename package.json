@@ -1,6 +1,6 @@
 {
   "name": "meep-draft-editor",
-  "version": "1.3.0",
+  "version": "1.3.5",
   "description": "draft editor for meepshop work",
   "main": "./meep-draft-release/draft-text.react.js",
   "scripts": {
