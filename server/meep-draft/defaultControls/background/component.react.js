@@ -43,7 +43,6 @@ export default class BackgroundControls extends Component {
   }
 
   _toggleBackgroundColor = (backgroundcolor) => {
-    console.log(backgroundcolor)
     const {
       editorState,
       onChange

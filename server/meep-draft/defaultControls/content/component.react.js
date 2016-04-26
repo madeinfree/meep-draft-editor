@@ -33,7 +33,6 @@ const ContentControls = (props) => {
   } = props
 
   const _setEditorState = (editorState) => {
-    console.log(editorState.toJS());
     onChange(editorState);
   }
 
