@@ -1,6 +1,5 @@
 import React, { PropTypes, Component } from 'react';
 import Im from 'immutable';
-import { fromJS } from 'immutable';
 //css
 import './draft-vendor/draft-text.css';
 import './draft-vendor/draft-editor.css';
