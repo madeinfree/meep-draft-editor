@@ -29,7 +29,7 @@
     "font-awesome": "^4.5.0",
     "immutable": "^3.8.1",
     "union-class-names": "^1.0.0",
-    "react-portal": "^2.1.0",
+    "react-portal": "^2.1.0"
   },
   "devDependencies": {
     "babel-cli": "^6.6.0",
