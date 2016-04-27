@@ -13,10 +13,10 @@ import {
  */
 const moveSelectionToEnd = (editorState) => {
   const content = editorState.getCurrentContent();
-  const blockMap = content.getBlockMap();
+  const lastBlock = content.getLastBlock();
 
-  const key = blockMap.last().getKey();
-  const length = blockMap.last().getLength();
+  const key = lastBlock.getKey();
+  const length = lastBlock.getLength();
 
   const selection = new SelectionState({
     anchorKey: key,
