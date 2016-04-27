@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Component } from 'react';
 import ReactDom, { render } from 'react-dom';
 import { fromJS } from 'immutable';
 
@@ -11,7 +11,7 @@ import createDragDropPlugin from './meep-draft/default-plugin-entites/draft-js-d
 const editorStyle = {
   "root": {
     padding: '20px',
-    width: '500px'
+    width: '800px'
   },
   "root-control": {
     position: 'relative',
@@ -23,7 +23,7 @@ const editorStyle = {
 }
 
 const editorSetting = {
-  toolBar: 'float',
+  toolBar: 'basic',
   customControls: [{
     fontFamily: true,
     fontSize: true,
@@ -54,32 +54,41 @@ const editorSetting = {
   }]
 }
 
-const uploadPlugin = createDragDropPlugin({
-  upload: (data, success, failed, progress) => {
-    const reader = new FileReader();
-    function doProgress(percent) {
-      progress(percent || 1);
-      if (percent >= 100) {
-        // Start reading the file
-        reader.readAsDataURL(data.files[0]);
-      } else {
-        setTimeout(doProgress, 250, (percent || 0) + 10);
-      }
-    }
-    doProgress(0);
-  }
-})
+class Editor extends Component {
+  constructor() {
+    super();
 
-const plugins = [uploadPlugin];
+    this.state = {
+      readOnly: false
+    }
+
+    this.onClick = () => {
+      this.setState({
+        readOnly: !this.state.readOnly
+      })
+    }
+  }
+
+  render() {
+    return (
+      <div>
+        <MeepDraftEditor
+          onEditorChange={(content) => {
+            // console.log(JSON.stringify(content));
+          }}
+          editorStyle={editorStyle}
+          readOnly={this.state.readOnly}
+          setting={editorSetting}
+        />
+        <button
+          onClick={this.onClick}
+        >toggle mode</button>
+      </div>
+    );
+  }
+}
+
 render(
-  <MeepDraftEditor
-    onEditorChange={(content) => {
-      // console.log(JSON.stringify(content));
-    }}
-    editorStyle={editorStyle}
-    readOnly={false}
-    setting={editorSetting}
-    plugins={plugins}
-  />,
+  <Editor />,
   document.getElementById('app')
 );
