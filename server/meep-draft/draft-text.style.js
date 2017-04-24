@@ -3,52 +3,52 @@ import userSelectNone from './lib/user-select-none';
 export default new Styles({
   root: {
     background: '#fff',
-    fontFamily: '\'Georgia\', serif',
-    fontSize: '14px',
+    fontFamily: "'Georgia', serif",
+    fontSize: '14px'
   },
   editor: {
     border: '1px solid #000',
     fontSize: '16px',
     fontFamily: "'Inconsolata', 'Menlo', 'Consolas', monospace",
     fontSize: '16px',
-    padding: '20px',
+    padding: '20px'
   },
   controls: {
-    fontFamily: '\'Helvetica\', sans-serif',
+    fontFamily: "'Helvetica', sans-serif",
     fontSize: 14,
-    userSelect: 'none',
+    userSelect: 'none'
   },
   styleButton: {
     color: '#59bcc9',
-    cursor: 'pointer',
+    cursor: 'pointer'
   },
   meepEditorInline: {
     display: 'inline-block',
-    userSelectNone,
+    userSelectNone
   },
   meepEditorInlineFontFamily: {
     textAlign: 'center'
   },
   meepEditorDefaultColor: {
-    color: '#59bcc9',
+    color: '#59bcc9'
   },
   meepEditorDefaultButton: {
     fontSize: '16px',
     cursor: 'pointer',
     width: '30px',
     display: 'inline-block',
-    textAlign: 'center',
+    textAlign: 'center'
   },
   meepEditorActiveButton: {
-    color: '#8E8E8E',
+    color: '#8E8E8E'
   },
   meepEditorActionSelect: {
-    color: '#000',
+    color: '#000'
   },
   meepEditorLink: {
     cursor: 'pointer',
     color: '#3b5998',
-    textDecoration: 'underline',
+    textDecoration: 'underline'
   },
   //ColorButton
   meepEditorDefaultColorButton: {
@@ -59,7 +59,7 @@ export default new Styles({
     textAlign: 'center',
     marginLeft: '2px',
     marginRight: '2px',
-    border: '1px solid #000',
+    border: '1px solid #000'
   },
   meepEditorActiveColorButton: {
     border: '2px solid #000'
@@ -68,24 +68,26 @@ export default new Styles({
     position: 'absolute',
     backgroundColor: '#fff',
     boxShadow: '1px 1px 5px #ccc',
+    zIndex: 1
   },
   //BackgroundButton
   meepEditorActiveBackgroundBox: {
     position: 'absolute',
     backgroundColor: '#fff',
     boxShadow: '1px 1px 5px #ccc',
+    zIndex: 1
   },
 
   //FontSizeBox
   meepEditorSelectMainBox: {
     position: 'relative',
     cursor: 'pointer',
-    height: '100%',
+    height: '100%'
   },
   meepEditorSelectMainBoxOpen: {
     borderColor: '#437A82',
     color: '#ccc',
-    zIndex: 1001,
+    zIndex: 1001
   },
   meepEditorSelectItemBox: {
     position: 'absolute',
@@ -99,10 +101,10 @@ export default new Styles({
   },
   meepEditorSelectBoxLabel: {
     paddingRight: '8px',
-    lineHeight: '24px',
+    lineHeight: '24px'
   },
   meepEditorSelectBoxIcon: {
-    paddingRight: '8px',
+    paddingRight: '8px'
   },
   meepEditorSelectItem: {
     backgroundPosition: 'center center',
@@ -115,10 +117,10 @@ export default new Styles({
     paddingTop: '5px',
     textAlign: 'center',
     width: '50px',
-    color: '#000',
+    color: '#000'
   },
   meepEditorSelectItemHover: {
-    color: '#ccc',
+    color: '#ccc'
   },
   //Family
   meepEditorSelectFamilyItem: {
@@ -132,6 +134,6 @@ export default new Styles({
     paddingTop: '5px',
     textAlign: 'center',
     color: '#000',
-    width: '100px',
-  },
-})
+    width: '100px'
+  }
+});
