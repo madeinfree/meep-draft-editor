@@ -263,13 +263,13 @@ export default class DraftText extends Component {
 
   componentDidUpdate(prevProps, prevState) {
     // 判斷每個block中文字的style是否改變，是的話：call onEditorChange()
-    let thisBlockMap = this.state.editorState.toJS().currentContent.blockMap;
-    let prevBlockMap = prevState.editorState.toJS().currentContent.blockMap;
+    let currBlockMap = this.state.editorState.getImmutable().getIn(['currentContent', 'blockMap']);
+    let prevBlockMap = prevState.editorState.getImmutable().getIn(['currentContent', 'blockMap']);
     let isStyleChanged;
-    if(Object.keys(thisBlockMap).length === Object.keys(prevBlockMap).length) {
+    if(currBlockMap.size === prevBlockMap.size) {
       // no newline
-      Object.keys(thisBlockMap).map(key => {
-        if(thisBlockMap[key].text === prevBlockMap[key].text && !deepEqual(thisBlockMap[key].characterList, prevBlockMap[key].characterList)) {
+      currBlockMap.mapKeys(key => {
+        if(currBlockMap.getIn([key, 'text']) === prevBlockMap.getIn([key, 'text']) && currBlockMap.getIn([key, 'characterList']) !== prevBlockMap.getIn([key, 'characterList'])) {
           // style change
           isStyleChanged = true;
         } else {
@@ -390,26 +390,3 @@ export default class DraftText extends Component {
     );
   }
 };
-
-function deepEqual(x, y) {
-  if ((typeof x == "object" && x != null) && (typeof y == "object" && y != null)) {
-    if (Object.keys(x).length != Object.keys(y).length)
-      return false;
-
-    for (let prop in x) {
-      if (y.hasOwnProperty(prop))
-      {
-        if (! deepEqual(x[prop], y[prop]))
-          return false;
-      }
-      else
-        return false;
-    }
-
-    return true;
-  }
-  else if (x !== y)
-    return false;
-  else
-    return true;
-}
