@@ -261,6 +261,31 @@ export default class DraftText extends Component {
     this.onChange(moveSelectionToEnd(defaultEditorState));
   }
 
+  componentDidUpdate(prevProps, prevState) {
+    // 判斷每個block中文字的style是否改變，是的話：call onEditorChange()
+    let currBlockMap = this.state.editorState.getImmutable().getIn(['currentContent', 'blockMap']);
+    let prevBlockMap = prevState.editorState.getImmutable().getIn(['currentContent', 'blockMap']);
+    let isStyleChanged;
+    if(currBlockMap.size === prevBlockMap.size) {
+      // no newline
+      currBlockMap.mapKeys(key => {
+        if(currBlockMap.getIn([key, 'text']) === prevBlockMap.getIn([key, 'text']) && currBlockMap.getIn([key, 'characterList']) !== prevBlockMap.getIn([key, 'characterList'])) {
+          // style change
+          isStyleChanged = true;
+        } else {
+          // the text of this block is changed
+          isStyleChanged = false;
+        }
+      })
+    } else {
+      // type newline
+      isStyleChanged = false;
+    }
+    if(this.props.onEditorChange && isStyleChanged) {
+      return this.getConvertToRaw(this.props.onEditorChange)
+    }
+  }
+
   render() {
     const {
        editorState,
